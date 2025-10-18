@@ -17,9 +17,9 @@ const userSchema = new mongoose.Schema({
         required: true,
     },
 
-    // admin - bookmyshow onboarding of theatre and movies
-    // partner - they will decide when to run how many to run and cost of tickets
-    // user - how will book tickets
+    // admin - BookMyShow onboarding of theatre and movies
+    // partner - they will decide when to run, how many to run and cost of tickets
+    // user - how to book tickets
 
     role: {
         type: String,

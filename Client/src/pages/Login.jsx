@@ -5,6 +5,9 @@ import { LoginUser } from '../api/user';
 
 const Login = () => {
   const [messageApi, contextHolder] = message.useMessage(); // Add this
+  // this is the new way of showing notification msg in antd v5 & React 19
+  // we use this to showcase msg at the top with additional delay to view msg
+  // otherwise the fast rendering will skip it
   const navigate = useNavigate();
   
   const onFinish = async (values) => {
@@ -12,6 +15,7 @@ const Login = () => {
       const response = await LoginUser(values);
       if (response?.success) {
         messageApi.success(response?.message);
+        localStorage.setItem("tokenForBMS", response?.data);
         // Add delay before navigation
         setTimeout(() => {
           navigate("/");

@@ -2,6 +2,8 @@ import React from 'react';
 import { Form, Input, Button, message } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { LoginUser } from '../api/user';
+import { useDispatch } from "react-redux";
+import { hideLoading, showLoading } from '../redux/loaderSlice';
 
 const Login = () => {
   const [messageApi, contextHolder] = message.useMessage(); // Add this
@@ -9,9 +11,11 @@ const Login = () => {
   // we use this to showcase msg at the top with additional delay to view msg
   // otherwise the fast rendering will skip it
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   
   const onFinish = async (values) => {
     try {
+      dispatch(showLoading());
       const response = await LoginUser(values);
       if (response?.success) {
         messageApi.success(response?.message);
@@ -25,6 +29,8 @@ const Login = () => {
       }
     } catch (error) {
       messageApi.error(error);
+    } finally {
+      dispatch(hideLoading());
     }
   };
 

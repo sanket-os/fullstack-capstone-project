@@ -3,12 +3,14 @@ const app = express();
 require("dotenv").config();
 const connectDB = require("./config/db");
 const userRoute = require("./routes/userRoute");
+const movieRoute = require("./routes/movieRoute");
 const errorHandler = require("./middlewares/errorHandler");
 
 connectDB();
 app.use(express.json());
 app.use("/bms/v1/users", userRoute);
 // always remember to use ( / ) at the endpoint start
+app.use("/bms/v1/movies", movieRoute);
 
 app.use(errorHandler);
 

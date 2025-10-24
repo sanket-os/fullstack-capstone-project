@@ -7,7 +7,7 @@ export const axiosInstance = axios.create({
     },
 });
 
-// when you make an get or post request using axios, it build 
+// when you make an get or post request using axios, it builds
 // an internal configuration obj called config that tells how to send the req
 // this obj is then passed through the interceptors which can inspect, add or modify 
 // things before req goes out

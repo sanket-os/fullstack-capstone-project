@@ -76,7 +76,6 @@ const loginUser = async (req, res, next) => {
         // Secret key: process.env.SECRET_KEY
         // Used to sign and later verify the token (keep it private!).
         // Options: { expiresIn: "1d" }
-        // The token expires in 1 day.
 
         res.send({
             success: true,

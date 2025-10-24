@@ -7,7 +7,7 @@ const validateJWTToken = (req, res, next) => {
         // The token’s signature is valid (i.e., created using your SECRET_KEY).
         // The token hasn’t expired.
 
-        req.body = { email: decode?.email, userId: decode?.userId };
+        req.body = { email: decode?.email, userId: decode?.userId, ...req.body };
         // This line replaces any existing data in req.body
         // Instead of replacing, add user info:
         // req.user = { email: decode.email, userId: decode.userId };

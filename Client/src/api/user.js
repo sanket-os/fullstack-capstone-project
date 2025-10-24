@@ -9,8 +9,8 @@ export const RegisterUser = async (values) => {
     } catch (error) {
         return error;
     }
-    //     catch (error) {
-    //   return error.response?.data || { success: false, message: error.message };
+    // } catch (error) {
+    //      return error.response?.data || { success: false, message: error.message };
     // }
     // this is best practice to read an actual error from the backend
 };

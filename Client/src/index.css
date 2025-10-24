@@ -1,3 +1,9 @@
+* {
+  margin: 0px;
+  padding: 0px;
+  box-sizing: border-box;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;
@@ -10,6 +16,11 @@
   align-items: center;
   justify-content: center;
 }
+
+.d-flex {
+  display: flex;
+}
+
 .flex-1 {
   flex: 1;
 }

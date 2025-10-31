@@ -2,15 +2,9 @@ import { Layout, Menu, message } from "antd";
 import { Content, Footer, Header } from "antd/es/layout/layout";
 import React, { useEffect } from "react";
 import {
-    AppstoreOutlined,
-    CalendarOutlined,
     HomeOutlined,
-    LinkOutlined,
     LogoutOutlined,
-    MailOutlined,
-    PrinterOutlined,
     ProfileOutlined,
-    SettingOutlined,
     UserOutlined,
 } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
@@ -67,30 +61,53 @@ const ProtectedRoute = ({ children }) => {
             ),
             icon: <HomeOutlined />,
         },
+
+        {
+            key: "roleProfile",
+            label: (
+                <span
+                    onClick={() => {
+                        if (user.role === "admin") {
+                            navigate("/admin", { replace: true });
+                        } else if (user.role === "partner") {
+                            navigate("/partner", { replace: true });
+                        } else {
+                            navigate("/profile", { replace: true });
+                        }
+                    }}
+                >
+                    {user?.role === "admin" && "Movie Management"}
+                    {user?.role === "partner" && "Theatre Management"}
+                    {user?.role === "user" && "My Bookings"}
+                </span>
+            ),
+            icon: <ProfileOutlined />
+        },
+
         {
             key: "profile",
             label: `${user ? user.name : ""}`,
             icon: <UserOutlined />,
             children: [
-                {
-                    key: "roleProfile",
-                    label: (
-                        <span
-                            onClick={() => {
-                                if (user.role === "admin") {
-                                    navigate("/admin", { replace: true });
-                                } else if (user.role === "partner") {
-                                    navigate("/partner", { replace: true });
-                                } else {
-                                    navigate("profile", { replace: true });
-                                }
-                            }}
-                        >
-                            My Profile
-                        </span>
-                    ),
-                    icon: <PrinterOutlined />,
-                },
+                // {
+                //     key: "roleProfile",
+                //     label: (
+                //         <span
+                //             onClick={() => {
+                //                 if (user.role === "admin") {
+                //                     navigate("/admin", { replace: true });
+                //                 } else if (user.role === "partner") {
+                //                     navigate("/partner", { replace: true });
+                //                 } else {
+                //                     navigate("profile", { replace: true });
+                //                 }
+                //             }}
+                //         >
+                //             My Profile
+                //         </span>
+                //     ),
+                //     icon: <ProfileOutlined />,
+                // },
                 {
                     key: "logout",
                     label: (
@@ -128,6 +145,7 @@ const ProtectedRoute = ({ children }) => {
                     </h3>
                     <Menu theme="dark" mode="horizontal" items={navItems} />
                 </Header>
+
                 <Content style={{ maxHeight: "100%" }}>{children}</Content>
 
                 <Footer
@@ -135,10 +153,7 @@ const ProtectedRoute = ({ children }) => {
                         textAlign: "center",
                         background: "#001529",
                         color: "white",
-                        position: "absolute",
-                        bottom: 0,
-                        zIndex: 1,
-                        width: "100%",
+                        marginTop: "auto",
                     }}
                 >
                     BookMyShow ©{new Date().getFullYear()} Created by Sam

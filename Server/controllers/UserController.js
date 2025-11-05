@@ -12,12 +12,14 @@ const registerUser = async (req, res, next) => {
             });
         }
 
-        // hashing usecase
+        // hashing 
         const salt = await bcrypt.genSalt(10); // 2^10 ~ 1024 rounds of key expansion inside bcrypt algo
         // not literally hashing 1024 times 
+
         const hashedPassword = await bcrypt.hash(req?.body?.password, salt);
         console.log("hashed password", hashedPassword);
         req.body.password = hashedPassword;
+
         // internally bcrypt uses EksBlowfish key setup algo, applies it to 2^N times
         // to mix password and salt into encryption key state 
         // uses that state to encrypt const text to produce final hash
@@ -34,7 +36,6 @@ const registerUser = async (req, res, next) => {
         });
 
     } catch (error) {
-        // implement error handler middleware later
         // console.log(error);
         next(error);
     }
@@ -60,7 +61,7 @@ const loginUser = async (req, res, next) => {
         if (!validatePassword) {
             return res.send({
                 success: false,
-                message: "Please enter valid password",
+                message: "Please enter a valid password",
             });
         }
 
@@ -76,6 +77,7 @@ const loginUser = async (req, res, next) => {
         // Secret key: process.env.SECRET_KEY
         // Used to sign and later verify the token (keep it private!).
         // Options: { expiresIn: "1d" }
+        // expires after 1 day
 
         res.send({
             success: true,

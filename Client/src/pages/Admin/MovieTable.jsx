@@ -6,11 +6,13 @@ import { hideLoading, showLoading } from '../../redux/loaderSlice';
 import { getAllMovies } from "../../api/movie";
 import MovieForm from './MovieForm';
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import DeleteMovieModal from './DeleteMovieModal';
 
 const MovieTable = () => {
 
     const [movies, setMovies] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedMovie, setSelectedMovie] = useState(null);
     const [formType, setFormType] = useState("add");
     const dispatch = useDispatch();
@@ -71,10 +73,13 @@ const MovieTable = () => {
             title: "Actions",
             render: (text, data) => {
                 return (
-                    <div style={{ display: "flex" }}>
+                    <div className='d-flex gap-10'>
                         <Button
                             onClick={() => {
                                 setIsModalOpen(true);
+                                data.releaseDate = moment(data.releaseDate).format(
+                                    "YYYY-MM-DD"
+                                );
                                 setSelectedMovie(data);
                                 setFormType("edit");
                             }}
@@ -82,7 +87,13 @@ const MovieTable = () => {
                             <EditOutlined />
                         </Button>
 
-                        <Button>
+                        <Button 
+                            danger
+                            onClick={() => {
+                                setIsDeleteModalOpen(true);
+                                setSelectedMovie(data);
+                            }}
+                        >
                             <DeleteOutlined />
                         </Button>
                     </div>
@@ -115,8 +126,8 @@ const MovieTable = () => {
 
 
   return (
-    <div>
-        <div className='d-flex justify-content-end'>
+    <div style={{ borderRadius: "8px", padding: "5px" }}>
+        <div className='d-flex justify-content-end mb-3'>
             <Button
                 onClick={() => {
                     setIsModalOpen(!isModalOpen);
@@ -135,6 +146,16 @@ const MovieTable = () => {
                 formType={formType}
                 setSelectedMovie={setSelectedMovie}
                 selectedMovie={selectedMovie}    
+            />
+        )}
+
+        {isDeleteModalOpen && (
+            <DeleteMovieModal 
+                isDeleteModalOpen={isDeleteModalOpen}
+                selectedMovie={selectedMovie}
+                setIsDeleteModalOpen={setIsDeleteModalOpen}
+                setSelectedMovie={setSelectedMovie}
+                FetchMovieData={getData}
             />
         )}
     </div>

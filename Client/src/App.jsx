@@ -5,7 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import { useSelector } from 'react-redux';
 import Profile from "./pages/Profile";  
-import Partner from './pages/Partner';
+import Partner from './pages/Partner/Partner';
 import Admin from './pages/Admin/Admin';
 import ProtectedRoute from './components/ProtectedRoute';
 

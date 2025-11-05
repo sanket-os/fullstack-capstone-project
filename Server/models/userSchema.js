@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
     },
 
     // admin - BookMyShow onboarding of theatre and movies
-    // partner - they will decide when to run, how many to run and cost of tickets
+    // partner - they will decide when to run movies & how many to run along with cost of tickets
     // user - how to book tickets
 
     role: {

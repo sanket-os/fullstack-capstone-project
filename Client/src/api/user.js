@@ -1,6 +1,7 @@
 import { axiosInstance } from ".";
 
 // You’re defining an async function named RegisterUser that sends registration data to your backend API.
+
 export const RegisterUser = async (values) => {
     try {
         const response = await axiosInstance.post("/users/register", values);
@@ -15,7 +16,7 @@ export const RegisterUser = async (values) => {
     // this is best practice to read an actual error from the backend
 };
 
-// The values argument contains the form data (like name, email, password, etc.)
+// The values argument contains form data (like name, email, password, etc.)
 export const LoginUser = async (values) => {
     try {
         const response = await axiosInstance.post("/users/login", values);

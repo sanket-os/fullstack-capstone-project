@@ -21,7 +21,11 @@ const Admin = () => {
   return (
     <div style={{ margin: "10px" }}>
       <h1>Admin Dashboard</h1>
-      <Tabs defaultActiveKey='movies' items={tabItems}></Tabs>
+      <Tabs 
+        defaultActiveKey='movies' 
+        items={tabItems}
+        style={{ margin: "10px" }}  
+      ></Tabs>
     </div>
   );
 }

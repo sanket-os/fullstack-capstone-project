@@ -6,7 +6,7 @@ const addMovie = async (req, res, next) => {
         await newMovie.save();
         res.send({
             success: true,
-            message: "New Movie had been Added",
+            message: "New movie has been added",
             // by design choice we are not entering data here
         });
     } catch (error) {
@@ -20,7 +20,7 @@ const getAllMovies = async (req, res, next) => {
         const allMovies = await movieModel.find();
         res.send({
             success: true,
-            message: "All movies has been fetched",
+            message: "All movies have been fetched",
             data: allMovies,
         });
     } catch (error) {
@@ -38,7 +38,7 @@ const updateMovie = async (req, res, next) => {
         );
         res.send({
             success: true,
-            message: "The Movie has been updated",
+            message: "The movie has been updated",
             data: movie,
         });
     } catch (error) {

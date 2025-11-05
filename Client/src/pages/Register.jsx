@@ -1,15 +1,15 @@
 import React from 'react';
-import { Form, Input, Button, message } from "antd";
+import { Form, Input, Button, message, Radio } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { RegisterUser } from '../api/user';
 
 const Register = () => {
-  const [messageApi, contextHolder] = message.useMessage(); 
+  const [messageApi, contextHolder] = message.useMessage();
   // message.useMessage() is the new Ant Design message system (v5+).
   // messageApi: used to trigger messages like messageApi.success("...").
   // contextHolder: a React element you must include in your JSX (Ant Design needs it to render messages properly).
   const navigate = useNavigate();
-  
+
   const onFinish = async (values) => {
     try {
       const response = await RegisterUser(values);
@@ -22,14 +22,14 @@ const Register = () => {
       } else {
         messageApi.warning(response?.message);
       }
-    } catch(error) {
+    } catch (error) {
       messageApi.error(error);
     }
   };
 
   return (
     <div className="App-header">
-      {contextHolder} 
+      {contextHolder}
       <main className='main-area mw-500 text-center px-3'>
         <section>
           <h1>Register to BookMyShow</h1>
@@ -42,26 +42,42 @@ const Register = () => {
               <Input id="name" type="text" placeholder='Enter you Name' />
             </Form.Item>
 
-            <Form.Item label="Email" htmlFor='email' name="email" 
-              className='d-block' 
-              rules={[{ required:true, message: "Email is Required"}]}>
-              <Input id='email' type='email' 
+            <Form.Item label="Email" htmlFor='email' name="email"
+              className='d-block'
+              rules={[{ required: true, message: "Email is Required" }]}>
+              <Input id='email' type='email'
                 placeholder='Enter your Email'></Input>
             </Form.Item>
 
-            <Form.Item label="Password" htmlFor='password' name="password" 
-              className='d-block' 
-              rules={[{ required:true, message: "Password is Required"}]}>
-              <Input id='password' type='password' 
+            <Form.Item label="Password" htmlFor='password' name="password"
+              className='d-block'
+              rules={[{ required: true, message: "Password is Required" }]}>
+              <Input id='password' type='password'
                 placeholder='Enter your Password'></Input>
-            </Form.Item>          
+            </Form.Item>
+
+            <Form.Item
+              label="Register as a Partner"
+              htmlFor="role"
+              name="role"
+              className="d-block text-center"
+              initialValue={false}
+              rules={[{ required: true, message: "Please select an option!" }]}
+            >
+              <div className='d-flex justify-content-start'>
+                <Radio.Group name='radiogroup' className="flex-start">
+                  <Radio value={"partner"}>Yes</Radio>
+                  <Radio value={"user"}>No</Radio>
+                </Radio.Group>
+              </div>
+            </Form.Item>
 
             <Form.Item>
               <Button type="primary" block htmlFor="submit" htmlType='submit'
-                style={{ fontSize: "1rem", fontWeight: "600"}}>
-                  Register
+                style={{ fontSize: "1rem", fontWeight: "600" }}>
+                Register
               </Button>
-            </Form.Item>  
+            </Form.Item>
           </Form>
         </section>
 

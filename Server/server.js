@@ -1,22 +1,30 @@
 const express = require("express");
 const app = express();
+
 require("dotenv").config();
+
 const connectDB = require("./config/db");
 const userRoute = require("./routes/userRoute");
 const movieRoute = require("./routes/movieRoute");
+const theatreRoute = require("./routes/theatreRoute");
 const errorHandler = require("./middlewares/errorHandler");
+const { validateJWTToken } = require("./middlewares/authorizationMiddleware");
 
 connectDB();
 app.use(express.json());
+
 app.use("/bms/v1/users", userRoute);
-// always remember to use ( / ) at the endpoint start
-app.use("/bms/v1/movies", movieRoute);
+// always remember to use ( / ) at the start of endpoint 
+
+app.use("/bms/v1/movies", validateJWTToken, movieRoute);
+app.use("/bms/v1/theatres", validateJWTToken, theatreRoute);
 
 app.use(errorHandler);
 
 // The server will first check if the PORT environment variable is set. 
 // If it is, the server will use that value.
 // it is helpful to configure it in different environments like development, staging, production 
+
 app.listen(process.env.PORT, () => {
     console.log(`Server is running on ${process.env.PORT}`);
 });

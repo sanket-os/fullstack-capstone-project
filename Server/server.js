@@ -9,6 +9,7 @@ const movieRoute = require("./routes/movieRoute");
 const theatreRoute = require("./routes/theatreRoute");
 const errorHandler = require("./middlewares/errorHandler");
 const { validateJWTToken } = require("./middlewares/authorizationMiddleware");
+const showRoute = require("./routes/showRoute");
 
 connectDB();
 app.use(express.json());
@@ -18,6 +19,7 @@ app.use("/bms/v1/users", userRoute);
 
 app.use("/bms/v1/movies", validateJWTToken, movieRoute);
 app.use("/bms/v1/theatres", validateJWTToken, theatreRoute);
+app.use("/bms/v1/shows", validateJWTToken, showRoute);
 
 app.use(errorHandler);
 

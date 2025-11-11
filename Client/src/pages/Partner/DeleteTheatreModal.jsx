@@ -26,7 +26,7 @@ const DeleteTheatreModal = ({
         } catch (error) {
             message.error(error);
         } finally {
-            dispatch(hideLoading);
+            dispatch(hideLoading());
             setIsDeleteModalOpen(false);
             setSelectedTheatre(null);
         }

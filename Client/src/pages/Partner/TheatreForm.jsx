@@ -90,12 +90,12 @@ const TheatreForm = ({
                             htmlFor="address"
                             name="address"
                             className="d-block"
-                            rules={[{ required: true, message: "Theatre name is required!" }]}
+                            rules={[{ required: true, message: "Theatre address is required!" }]}
                         >
                             <TextArea
                                 id="address"
                                 rows="3"
-                                placeholder="Enter the theatre name"
+                                placeholder="Enter the theatre address"
                             ></TextArea>
                         </Form.Item>
                     </Col>

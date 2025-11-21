@@ -8,8 +8,10 @@ import Profile from "./pages/Profile";
 import Partner from './pages/Partner/Partner';
 import Admin from './pages/Admin/Admin';
 import ProtectedRoute from './components/ProtectedRoute';
+import SingleMovie from "./pages/SingleMovie";
+import BookShow from "./pages/BookShow";
 
-function App() {
+function AppLayout() {
 
   const { loading } = useSelector((state) => {
     return state.loader;
@@ -50,6 +52,24 @@ function App() {
             }
           />
 
+          <Route
+            path="/movie/:id"
+            element={
+              <ProtectedRoute>
+                <SingleMovie />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/book-show/:id"
+            element={
+              <ProtectedRoute>
+                <BookShow />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/login" element={<Login />} />
           
           <Route path="/register" element={<Register />} />
@@ -60,4 +80,4 @@ function App() {
 
 }
 
-export default App
+export default AppLayout;

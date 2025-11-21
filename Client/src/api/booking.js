@@ -1,0 +1,22 @@
+import { axiosInstance } from ".";
+
+export const createPaymentIntent = async (amount) => {
+    try {
+        const response = await axiosInstance.post("/bookings/createPaymentIntent", {
+            amount
+        });
+        return response.data;
+    } catch (err) {
+        return err.response.data;
+    }
+};
+
+export const bookShow = async (payload) => {
+    try {
+        const response = await axiosInstance.post("/bookings/bookShow", payload);
+        console.log(response.data);
+        return response.data;
+    } catch (err) {
+        return err.response.data;
+    }
+};

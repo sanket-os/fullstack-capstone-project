@@ -44,7 +44,8 @@ const updateShow = async (req, res, next) => {
 const getAllShowsByTheatre = async (req, res, next) => {
     try {
         const theatreId = req.params.theatreId;
-        const shows = await Show.find({ theatre: theatreId
+        const shows = await Show.find({
+            theatre: theatreId
         }).populate("movie");
         res.send({
             success: true,
@@ -60,9 +61,29 @@ const getAllShowsByTheatre = async (req, res, next) => {
 const getAllTheatresByMovie = async (req, res, next) => {
     try {
         const { movie, date } = req.body;
-        const shows = await Show.find({ movie, date }).populate(theatre);
+        const shows = await Show.find({ movie, date }).populate("theatre");
+        
         let uniqueTheatres = [];
-        // to-do build unique theatres
+        
+        shows.forEach((show) => {
+            // Check if this theatre is already in uniqueTheatres
+            let isTheatre = uniqueTheatres.find(
+                (theatre) => theatre._id.toString() === show.theatre._id.toString()
+            );
+            
+            if (!isTheatre) {
+                // Filter all shows that belong to this theatre
+                let showsOfThisTheatre = shows.filter(
+                    (showObj) => showObj.theatre._id.toString() === show.theatre._id.toString()
+                );
+                
+                uniqueTheatres.push({
+                    ...show.theatre._doc,
+                    shows: showsOfThisTheatre,
+                });
+            }
+        });
+        
         res.send({
             success: true,
             message: "All theatres are fetched",
@@ -74,9 +95,40 @@ const getAllTheatresByMovie = async (req, res, next) => {
     }
 };
 
+// const getAllTheatresByMovie = async (req, res, next) => {
+//     try {
+//         const { movie, date } = req.body;
+//         const shows = await Show.find({ movie, date }).populate("theatre");
+//         let uniqueTheatres = [];
+//         // to-do build unique theatres
+//         shows.forEach((show) => {
+//             let isTheatre = uniqueTheatres.find(
+//                 (theatre) => theatre._id === show.theatre._id
+//             );
+//             if (!isTheatre) {
+//                 let showsOfThisTheatre = shows.filter(
+//                     (showObj) => showObj.theatre._id === show.theatre.id
+//                 );
+//                 uniqueTheatres.push({
+//                     ...show.theatre._doc,
+//                     shows: showsOfThisTheatre,
+//                 });
+//             }
+//         });
+//         res.send({
+//             success: true,
+//             message: "All theatres are fetched",
+//             data: uniqueTheatres,
+//         });
+//     } catch (error) {
+//         res.status(400);
+//         next(error);
+//     }
+// };
+
 const getShowById = async (req, res, next) => {
     try {
-        const shows = await Show.findById(req.body.showId)
+        const shows = await Show.findById(req.params.showId)
             .populate("movie")
             .populate("theatre");
         res.send({

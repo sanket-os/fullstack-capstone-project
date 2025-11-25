@@ -4,12 +4,14 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { useSelector } from 'react-redux';
-import Profile from "./pages/Profile";  
 import Partner from './pages/Partner/Partner';
 import Admin from './pages/Admin/Admin';
 import ProtectedRoute from './components/ProtectedRoute';
 import SingleMovie from "./pages/SingleMovie";
 import BookShow from "./pages/BookShow";
+import MyBookings from "./pages/MyBookings";
+import Forget from "./pages/Forget";
+import Reset from "./pages/Reset";
 
 function AppLayout() {
 
@@ -32,6 +34,15 @@ function AppLayout() {
             path="/" element={
               <ProtectedRoute>
                 <Home />
+              </ProtectedRoute>
+            }
+          />
+
+           <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <MyBookings />
               </ProtectedRoute>
             }
           />
@@ -73,6 +84,10 @@ function AppLayout() {
           <Route path="/login" element={<Login />} />
           
           <Route path="/register" element={<Register />} />
+
+          <Route path="/forget" element={<Forget />} />
+          
+          <Route path="/reset" element={<Reset />} />
         </Routes>
       </BrowserRouter>
     </>

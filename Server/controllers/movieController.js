@@ -51,6 +51,7 @@ const deleteMovie = async (req, res, next) => {
     try {
         const movieId = req.params.movieId;
         await movieModel.findByIdAndDelete(movieId);
+
         res.send({
             success: true,
             message: "The movie has been deleted",
@@ -61,12 +62,17 @@ const deleteMovie = async (req, res, next) => {
     }
 };
 
+// we use movieId because the route has :movieId not :id
+// names come from the route definition & controller must match it
+// use descriptive names like movieId instead of id for clarity 
+
 const getMovieById = async (req, res, next) => {
     try {
         const movie = await movieModel.findById(req.params.id);
+
         res.send({
             success: true,
-            message: "The movie has been deleted",
+            message: "The movie has been fetched",
             data: movie,
         });
     } catch (error) {

@@ -1,5 +1,9 @@
 const mongoose = require("mongoose");
 
+// here objectId is a 12 byte unique identifier
+// it acts as a primary to for docs in collection
+// with ref pointing to the existing mongoose model schema 
+
 const showSchema = new mongoose.Schema(
     {
         name: {
@@ -40,4 +44,6 @@ const showSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-module.exports = mongoose.model("shows", showSchema);
+
+const Show = mongoose.model("shows", showSchema);
+module.exports = Show;

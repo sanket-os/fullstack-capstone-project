@@ -37,3 +37,9 @@ const theatreSchema = new mongoose.Schema(
 
 const Theatre = mongoose.model("theatres", theatreSchema);
 module.exports = Theatre;
+
+// two liner exports are good & recommended than 1 liner like
+// module.exports = mongoose.model("theatres", theatreSchema);
+
+// can use Theater inside file
+// clearer in large projects

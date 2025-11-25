@@ -1,26 +1,11 @@
 const stripe = require("stripe")(process.env.STRIPE_KEY);
 const Booking = require("../models/bookingSchema");
 const Show = require("../models/showSchema");
+const emailHelper = require("../utils/emailHelper");
 
 const createPaymentIntent = async (req, res, next) => {
     try {
         const { amount } = req.body;
-
-        // const customer = await stripe.customers.list({
-        //     email: token.email,
-        //     limit: 1,
-        // });
-
-        // let currCustomer = null;
-
-        // if (customer.data.length > 0) {
-        //     currCustomer = customer.data[0];
-        // } else {
-        //     currCustomer = await stripe.customer.create({
-        //         source: token.id,
-        //         email: token.email,
-        //     });
-        // }
 
         const paymentIntent = await stripe.paymentIntents.create({
             amount: amount,
@@ -28,13 +13,10 @@ const createPaymentIntent = async (req, res, next) => {
             automatic_payment_methods: {
                 enabled: true,
             },
-            // customer: currCustomer.id,
-            // payment_method_types: ["card"],
-            // receipt_email: token.email,
-            // description: "Token has been assigned",
         });
 
         const transactionId = paymentIntent.id;
+        
         res.send({
             success: true,
             clientSecret: paymentIntent.client_secret,
@@ -46,6 +28,13 @@ const createPaymentIntent = async (req, res, next) => {
         next(error);
     }
 };
+// auto payment method => UPI, NetBanking, Card
+// frontend uses clientSecret to show Stripe payment UI 
+// it is used to complete one specific payment on frontend
+// it is not same as secretKey
+
+// secretKey => manage stripe, create payment intent, refunds
+// client secret => complete a specific payment only
 
 const bookShow = async (req, res, next) => {
     try {
@@ -59,9 +48,45 @@ const bookShow = async (req, res, next) => {
             bookedSeats: updatedBookedSeats,
         });
 
+            const populatedBooking = await Booking.findById(newBooking._id)
+      .populate({
+        path: "user",
+        select: "-password",
+      })
+      .populate({
+        path: "show",
+        populate: {
+          path: "movie",
+          model: "movies",
+        },
+      })
+      .populate({
+        path: "show",
+        populate: {
+          path: "theatre",
+          model: "theatres",
+        },
+      });
+
+    const metaData = {
+      name: populatedBooking.user.name,
+      movie: populatedBooking.show.movie.movieName,
+      theatre: populatedBooking.show.theatre.name,
+      date: populatedBooking.show.date,
+      time: populatedBooking.show.time,
+      seats: populatedBooking.seats,
+      amount: populatedBooking.seats.length * populatedBooking.show.ticketPrice,
+      transactionId: populatedBooking.transactionId,
+    };
+    await emailHelper(
+      "ticketTemplate.html",
+      populatedBooking.user.email,
+      metaData
+    );
+
         res.send({
             success: true,
-            message: "Booking Successful",
+            message: "Payment Successful",
             data: newBooking,
         });
     } catch (error) {
@@ -70,7 +95,42 @@ const bookShow = async (req, res, next) => {
     }
 };
 
+const getAllBookings = async (req, res, next) => {
+  try {
+    const bookings = await Booking.find({ user: req.body.userId })
+      .populate({
+        path: "user",
+        select: "-password",
+      })
+      .populate({
+        path: "show",
+        populate: {
+          path: "movie",
+          model: "movies",
+        },
+      })
+      .populate({
+        path: "show",
+        populate: {
+          path: "theatre",
+          model: "theatres",
+        },
+      });
+    res.send({
+      success: true,
+      message: "Bookings Fetched",
+      data: bookings,
+    });
+  } catch (error) {
+    res.status(400);
+    next(error);
+  }
+};
+
+
+
 module.exports = {
     bookShow,
     createPaymentIntent,
+    getAllBookings,
 };

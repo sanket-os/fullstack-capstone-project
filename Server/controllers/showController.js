@@ -58,6 +58,22 @@ const getAllShowsByTheatre = async (req, res, next) => {
     }
 };
 
+// a show only stores id of the theatre
+// populate does a 2nd query & inserts the full obj
+// it's like automatic JOIN in SQL 
+
+// Show
+//  ├── movie: 65c3e...
+//  └── theatre: 987fa...
+
+//  V
+//  V
+
+//  Show
+//  ├── movie: { title: "Dune", year: 2024, ... }
+//  └── theatre: { name: "PVR Inox", city: "Mumbai", ... }
+ 
+
 const getAllTheatresByMovie = async (req, res, next) => {
     try {
         const { movie, date } = req.body;
@@ -95,36 +111,24 @@ const getAllTheatresByMovie = async (req, res, next) => {
     }
 };
 
-// const getAllTheatresByMovie = async (req, res, next) => {
-//     try {
-//         const { movie, date } = req.body;
-//         const shows = await Show.find({ movie, date }).populate("theatre");
-//         let uniqueTheatres = [];
-//         // to-do build unique theatres
-//         shows.forEach((show) => {
-//             let isTheatre = uniqueTheatres.find(
-//                 (theatre) => theatre._id === show.theatre._id
-//             );
-//             if (!isTheatre) {
-//                 let showsOfThisTheatre = shows.filter(
-//                     (showObj) => showObj.theatre._id === show.theatre.id
-//                 );
-//                 uniqueTheatres.push({
-//                     ...show.theatre._doc,
-//                     shows: showsOfThisTheatre,
-//                 });
-//             }
-//         });
-//         res.send({
-//             success: true,
-//             message: "All theatres are fetched",
-//             data: uniqueTheatres,
-//         });
-//     } catch (error) {
-//         res.status(400);
-//         next(error);
-//     }
-// };
+
+// Property	        Meaning
+// show	            Mongoose Document (wrapper + methods + metadata)
+// show._doc	    Raw data stored in MongoDB (the part you really care about)
+// show.toObject()	Clean plain object version
+// .lean()	        Makes Mongoose return plain objects directly
+
+// cleaner versions -
+// { 
+//   ...show.theatre.toObject(),
+//   shows: showsOfThisTheatre,
+// }
+
+// const shows = await Show.find({ movie, date })
+//     .populate("theatre")
+//     .lean();   // returns plain JS objects
+// Then you no longer need _doc.
+
 
 const getShowById = async (req, res, next) => {
     try {

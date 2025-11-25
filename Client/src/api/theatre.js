@@ -18,7 +18,7 @@ export const updateTheatre = async (payload) => {
     }
 };
 
-export const getAllTheatres = async (payload) => {
+export const getAllTheatres = async () => {
     try {
         const response = await axiosInstance.get("/theatres/getAllTheatresByOwner");
         return response.data;
@@ -38,9 +38,7 @@ export const getAllTheatresForAdmin = async() => {
 
 export const deleteTheatre = async (payload) => {
     try {
-        const response = await axiosInstance.delete(`/theatres/deleteTheatre/${payload?.theatreId}`
-
-        );
+        const response = await axiosInstance.delete(`/theatres/deleteTheatre/${payload?.theatreId}`);
         return response.data;
     } catch (err) {
         return err.response;

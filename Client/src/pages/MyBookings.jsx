@@ -1,4 +1,3 @@
-import React from "react";
 import { getAllBookings } from "../api/booking";
 import { Button, Card, Col, Row, message } from "antd";
 import { useEffect, useState } from "react";
@@ -40,6 +39,7 @@ const MyBookings = () => {
             .map((booking) => {
             return (
               <Col key={booking._id} xs={{ span: 24 }} lg={{ span: 12 }}>
+
                 <Card className="mb-3">
                   <div className="d-flex flex-column-mob">
                     <div className="flex-shrink-0">
@@ -49,6 +49,7 @@ const MyBookings = () => {
                         alt="Movie Poster"
                       />
                     </div>
+                    
                     <div className="show-details flex-1">
                       <h3 className="mt-0 mb-0">{booking.show.movie.title}</h3>
                       <p>

@@ -19,3 +19,4 @@ const validateJWTToken = (req, res, next) => {
 module.exports = {
     validateJWTToken,
 };
+

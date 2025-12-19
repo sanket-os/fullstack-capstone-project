@@ -1,10 +1,8 @@
-import React from 'react';
 import { Col, Row, Modal, Form, Input, Select, Button, message } from 'antd';
 import TextArea from "antd/es/input/TextArea";
 import { useDispatch } from 'react-redux';
 import { hideLoading, showLoading } from '../../redux/loaderSlice';
 import { addMovie, updateMovie } from '../../api/movie';
-import moment from 'moment';
 
 const MovieForm = ({
   isModalOpen,
@@ -15,13 +13,7 @@ const MovieForm = ({
   setSelectedMovie
 }) => {
 
-  const dispatch = useDispatch();
-
-  // if (selectedMovie) {
-  //   selectedMovie.releaseDate = moment(selectedMovie.releaseDate).format(
-  //     "YYYY-MM-DD"
-  //   );
-  // }
+  const dispatch = useDispatch()
 
   const handleCancel = () => {
     setIsModalOpen(false);

@@ -13,7 +13,7 @@ import MyBookings from "./pages/MyBookings";
 import Forget from "./pages/Forget";
 import Reset from "./pages/Reset";
 
-function AppLayout() {
+function App() {
 
   const { loading } = useSelector((state) => {
     return state.loader;
@@ -39,7 +39,7 @@ function AppLayout() {
           />
 
            <Route
-            path="/profile"
+            path="/mybookings"
             element={
               <ProtectedRoute>
                 <MyBookings />
@@ -95,4 +95,4 @@ function AppLayout() {
 
 }
 
-export default AppLayout;
+export default App;

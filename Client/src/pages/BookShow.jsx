@@ -15,6 +15,19 @@ import {
 import { loadStripe } from "@stripe/stripe-js";
 import { bookShow, createPaymentIntent } from "../api/booking";
 
+// loadStripe connects your frontend with Stripe account using your publishable key.
+// This returns a promise that gives access to Stripe’s client library 
+
+// Elements wraps your checkout so Stripe works, Makes Stripe available to all child components
+
+// PaymentElement shows payment UI (card, UPI, netbanking, etc). So you don’t have to build UI manually
+
+// useStripe() - A React hook that gives you the Stripe object needed to confirm payments, a Stripe instance.
+
+// useElements() - A React hook that gives access to the form elements (like PaymentElement).
+
+// stripe.confirmPayment() completes the payment.
+
 const stripePromise = loadStripe(
     "pk_test_51SUR6c1hxLR6U0W4MAayKKnxh4MEOIpIPFin0JI5ZCNUQ4pFjAO1gdAEIPcTpciWQMDTXDcE4qvupwZizEhSSD5t00yQi4EjTt"
 );
@@ -62,7 +75,7 @@ const BookShow = () => {
                 setClientSecret(response.clientSecret);
                 setShowPaymentUI(true);
             } else {
-                message.error(response.message || "Payment init failed");
+                message.warning(response.message || "Payment init failed");
             }
         } catch (err) {
             message.error(err.message);
@@ -82,7 +95,8 @@ const BookShow = () => {
             });
             if (response && response.success) {
                 message.success("Show Booking done!");
-                navigate("/profile");
+                navigate("/mybookings");
+                // navigate to myBookings not profile
             } else {
                 message.warning(response?.message || "Booking failed");
             }
@@ -93,25 +107,29 @@ const BookShow = () => {
         }
     };
 
-    // const onToken = async (token) => {
-    //     try {
-    //         dispatch(showLoading());
-    //         const response = await makePayment(
-    //             token,
-    //             selectedSeats.length * show.ticketPrice * 80
-    //         );
-    //         if (response.success) {
-    //             message.success(response.message);
-    //             book(response.data);
-    //         } else {
-    //             message.warning(response.message);
-    //         }
-    //     } catch (err) {
-    //         message.error(err.message);
-    //     } finally {
-    //         dispatch(hideLoading());
-    //     }
-    // };
+
+//     const bookAndPay = async (transactionId) => {
+//          try {
+//             dispatch(showLoading());
+//             const response = await makePaymentAndBookShow({
+//                 show: params.id,
+//                 transactionId,
+//                 seats: selectedSeats,
+//                 user: user._id,
+//             });
+//             if (response && response.success) {
+//                 message.success("Show Booking done!");
+//                 navigate("/myBookings");
+//                 // navigate to myBookings not profile
+//             } else {
+//                 message.warning(response?.message || "Booking failed");
+//             }
+//         } catch (err) {
+//             message.error(err.message);
+//         } finally {
+//             dispatch(hideLoading());
+//         }
+//   };
 
     // Inline payment form (NO extra file)
     const PaymentSection = () => {
@@ -133,7 +151,7 @@ const BookShow = () => {
             const { error, paymentIntent } = await stripe.confirmPayment({
                 elements,
                 confirmParams: {
-                    return_url: window.location.origin + "/profile", // Add return URL
+                    return_url: window.location.origin + "/mybookings", // Add return URL, for /myBookings not profile
                 },
                 redirect: "if_required",
             });
@@ -180,7 +198,26 @@ const BookShow = () => {
                     <p className="text-center mb-10px">
                         Screen this side, you will be watching in this direction
                     </p>
+
                     <div className="screen-div"></div>
+
+                    {/* Array.from(Array(rows).keys()) =>
+
+                    Array(rows) → creates an empty array with rows length
+                    Example: if rows = 5, you get:
+                    [empty × 5]
+
+                    Array(rows).keys() → returns the indexes of the array
+                    Example:
+                    [0, 1, 2, 3, 4] (an iterator)
+
+                    Array.from() → converts the iterator into a real array.
+
+                    Final output:
+                    [0, 1, 2, ..., rows-1] 
+
+                    same thing happens with columns to create a grid of (rows * columns) 
+                    */}
                     <ul className="seat-ul justify-content-center">
                         {Array.from(Array(rows).keys()).map((row) => {
                             return Array.from(Array(columns).keys()).map((column) => {
@@ -255,27 +292,18 @@ const BookShow = () => {
                                         <span>Total Seats: </span> {show.totalSeats}
                                         <span> &nbsp;|&nbsp; Available Seats:</span>
                                         {show.totalSeats - show.bookedSeats.length}
+
+                                        {/* &nbsp; stands for:
+                                            Non-Breaking Space
+                                            It is a special HTML character used when you want to add a space that the browser will not collapse or break across lines. 
+                                            Total Seats: 50 | Available Seats: 20 
+                                        */}
                                     </h3>
                                 </div>
                             }
                             style={{ width: "100%" }}
                         >
                             {getSeats()}
-
-                            {/* {selectedSeats.length > 0 && (
-                                <StripeCheckout
-                                    token={onToken}
-                                    amount={selectedSeats.length * show.ticketPrice * 80}
-                                    billingAddress
-                                    stripeKey="pk_test_51SUR6c1hxLR6U0W4MAayKKnxh4MEOIpIPFin0JI5ZCNUQ4pFjAO1gdAEIPcTpciWQMDTXDcE4qvupwZizEhSSD5t00yQi4EjTt"
-                                >
-                                    <div className="max-width-600 mx-auto">
-                                        <Button type="primary" shape="round" size="large" block>
-                                            Pay Now
-                                        </Button>
-                                    </div>
-                                </StripeCheckout>
-                            )} */}
 
                             {selectedSeats.length > 0 && !showPaymentUI && (
                                 <div className="max-width-600 mx-auto">

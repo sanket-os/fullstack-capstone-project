@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import moment from "moment";
 import { Button, message, Table } from "antd";
 import { useDispatch } from 'react-redux';
@@ -16,6 +16,7 @@ const MovieTable = () => {
     const [selectedMovie, setSelectedMovie] = useState(null);
     const [formType, setFormType] = useState("add");
     const dispatch = useDispatch();
+
     const tableHeadings = [
         {
             key: "poster",
@@ -144,16 +145,16 @@ const MovieTable = () => {
                 setIsModalOpen={setIsModalOpen} 
                 FetchMovieData={getData}
                 formType={formType}
-                setSelectedMovie={setSelectedMovie}
-                selectedMovie={selectedMovie}    
+                selectedMovie={selectedMovie} 
+                setSelectedMovie={setSelectedMovie}   
             />
         )}
 
         {isDeleteModalOpen && (
             <DeleteMovieModal 
                 isDeleteModalOpen={isDeleteModalOpen}
-                selectedMovie={selectedMovie}
                 setIsDeleteModalOpen={setIsDeleteModalOpen}
+                selectedMovie={selectedMovie}
                 setSelectedMovie={setSelectedMovie}
                 FetchMovieData={getData}
             />

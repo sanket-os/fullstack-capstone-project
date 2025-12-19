@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
 
 // here objectId is a 12 byte unique identifier
-// it acts as a primary to for docs in collection
+// it is used as a primary key for docs in collection
 // with ref pointing to the existing mongoose model schema 
+// Because it allows us to reference another document in another collection
 
 const showSchema = new mongoose.Schema(
     {

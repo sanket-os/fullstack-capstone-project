@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { message, Input, Divider, Row, Col } from "antd";
 import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";

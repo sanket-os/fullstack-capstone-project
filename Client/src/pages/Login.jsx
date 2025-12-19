@@ -1,4 +1,3 @@
-import React from 'react';
 import { Form, Input, Button, message } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { LoginUser } from '../api/user';
@@ -37,7 +36,9 @@ const Login = () => {
   return (
     <div className='App-header'>
       {contextHolder} {/* Add this */}
+
       <main className='main-area mw-500 text-center px-3'>
+        
         <section>
           <h1>Login to BookMyShow</h1>
         </section>

@@ -46,7 +46,7 @@ const ProtectedRoute = ({ children }) => {
         } else {
             navigate("/login");
         }
-    }, [navigate]);
+    }, []);
 
     const navItems = [
         {
@@ -72,7 +72,7 @@ const ProtectedRoute = ({ children }) => {
                         } else if (user.role === "partner") {
                             navigate("/partner", { replace: true });
                         } else {
-                            navigate("/profile", { replace: true });
+                            navigate("/mybookings", { replace: true });
                         }
                     }}
                 >
@@ -84,30 +84,17 @@ const ProtectedRoute = ({ children }) => {
             icon: <ProfileOutlined />
         },
 
+        // Property	                    Behavior
+        // replace: false (default)	    Add new history entry
+        // replace: true	            Replace current entry (no back navigation to previous page)
+
+        // after you login going back to the login page is undesirable hence replace: true is good option here
+
         {
             key: "profile",
             label: `${user ? user.name : ""}`,
             icon: <UserOutlined />,
             children: [
-                // {
-                //     key: "roleProfile",
-                //     label: (
-                //         <span
-                //             onClick={() => {
-                //                 if (user.role === "admin") {
-                //                     navigate("/admin", { replace: true });
-                //                 } else if (user.role === "partner") {
-                //                     navigate("/partner", { replace: true });
-                //                 } else {
-                //                     navigate("profile", { replace: true });
-                //                 }
-                //             }}
-                //         >
-                //             My Profile
-                //         </span>
-                //     ),
-                //     icon: <ProfileOutlined />,
-                // },
                 {
                     key: "logout",
                     label: (
@@ -166,3 +153,4 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export default ProtectedRoute;
+

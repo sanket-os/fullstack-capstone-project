@@ -59,7 +59,7 @@
       </div>
       <h2>Hi #{name}</h2>
       <div class="content">
-        <p>Your One-Time Password (OTP) for reseting the password :</p>
+        <p>Your One-Time Password (OTP) for resetting the password :</p>
         <table>
           <tr>
             <td
@@ -94,3 +94,25 @@
     </div>
   </body>
 </html>
+
+
+<!-- 
+"#{otp} is a placeholder in an HTML email template. On the backend,
+ we dynamically replace it with actual values 
+like OTP or username before sending the email. This allows us to 
+reuse the same template while injecting user-specific data at runtime." -->
+
+<!-- this function below is used to replace the placeholder with actual data
+ we are using custom replacement unlike other engines like JSX, EJS, Handlebars, mustache 
+ which use other template styles which email templates don't understand anyway 
+ hence this is perfect for email templates -->
+
+<!-- function replaceContent(content, metaData) {
+  for (const key in metaData) {
+    content = content.replace(
+      new RegExp(`#{${key}}`, "g"),
+      metaData[key]
+    );
+  }
+  return content;
+} -->

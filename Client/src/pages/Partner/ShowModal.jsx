@@ -82,7 +82,7 @@ const ShowModal = ({
             if (showResponse.success) {
                 setShows(showResponse.data);
             } else {
-                message.error(showResponse.message);
+                message.warning(showResponse.message);
             }
         } catch (err) {
             message.error(err.message);
@@ -282,7 +282,7 @@ const ShowModal = ({
                                         <Input
                                             id="time"
                                             type="time"
-                                            placeholder="Enter the show date"
+                                            placeholder="Enter the show time"
                                         ></Input>
                                     </Form.Item>
                                 </Col>
@@ -308,7 +308,7 @@ const ShowModal = ({
                                         <Select
                                             id="movie"
                                             name="movie"
-                                            placeholder="Select Move"
+                                            placeholder="Select Movie"
                                             options={movies.map((movie) => ({
                                                 key: movie._id,
                                                 value: movie._id,

@@ -7,7 +7,7 @@ const addMovie = async (req, res, next) => {
         res.send({
             success: true,
             message: "New movie has been added",
-            // by design choice we are not entering data here
+            // by design choice we are not entering data here, we are using .save()
         });
     } catch (error) {
         res.status(400);

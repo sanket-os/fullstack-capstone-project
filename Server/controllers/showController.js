@@ -30,7 +30,9 @@ const deleteShow = async (req, res, next) => {
 
 const updateShow = async (req, res, next) => {
     try {
-        await Show.findByIdAndUpdate(req.body.showId, req.body);
+        await Show.findByIdAndUpdate(req.body.showId, req.body, {
+            new: true,
+        });
         res.send({
             success: true,
             message: "The show has been updated!",

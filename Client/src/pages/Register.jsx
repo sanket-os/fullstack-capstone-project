@@ -1,4 +1,3 @@
-import React from 'react';
 import { Form, Input, Button, message, Radio } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { RegisterUser } from '../api/user';
@@ -8,6 +7,7 @@ const Register = () => {
   // message.useMessage() is the new Ant Design message system (v5+).
   // messageApi: used to trigger messages like messageApi.success("...").
   // contextHolder: a React element you must include in your JSX (Ant Design needs it to render messages properly).
+  
   const navigate = useNavigate();
 
   const onFinish = async (values) => {

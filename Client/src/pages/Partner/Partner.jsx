@@ -1,4 +1,3 @@
-import React from 'react';
 import TheatreList from "./TheatreList";
 import { Tabs } from 'antd';
 

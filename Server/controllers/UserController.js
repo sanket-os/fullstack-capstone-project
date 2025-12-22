@@ -44,6 +44,7 @@ const registerUser = async (req, res, next) => {
 };
 
 const loginUser = async (req, res, next) => {
+  console.log("LOGIN ATTEMPT BODY:", req.body);
     try {
         const user = await userModel.findOne({ email: req?.body?.email });
 

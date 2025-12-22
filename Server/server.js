@@ -1,6 +1,7 @@
 const express = require("express");
-// const rateLimit = require("express-rate-limit");
-const app = express();
+const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
+const mongoSanitize = require("express-mongo-sanitize");
 
 require("dotenv").config();
 
@@ -15,18 +16,19 @@ const bookingRoute = require("./routes/bookingRoute");
 const errorHandler = require("./middlewares/errorHandler");
 const { validateJWTToken } = require("./middlewares/authorizationMiddleware");
 
-// const helmet = require("helmet");
-// const mongoSanitize = require("express-mongo-sanitize");
 
-// const apiLimited = rateLimit({
-//   windowMs: 15 * 60 * 1000,
-//   max: 100,
-//   message: "Too Many Request from this IP, please try again after 15 mins",
-// });
+const app = express();
+
 
 connectDB();
 
-// app.use(helmet());
+
+/**
+ * Security middlewares
+ * --------------------
+ * Helmet sets HTTP security headers
+ */
+app.use(helmet());
 
 // Custom Content Security Policy (CSP) configuration
 // app.use(
@@ -44,11 +46,95 @@ connectDB();
 //   })
 // );
 
+/**
+ * Custom Content Security Policy
+ * ------------------------------
+ * Allows Stripe, frontend, and API communication safely
+ */
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "https://js.stripe.com", // Stripe JS
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'", // required for Stripe styles
+      ],
+      imgSrc: [
+        "'self'",
+        "data:",
+        "https://*.stripe.com",
+      ],
+      connectSrc: [
+        "'self'",
+        "https://api.stripe.com", // Stripe API
+      ],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+    },
+  })
+);
+/**
+ * Body parser
+ */
 app.use(express.json());
-// app.use(mongoSanitize());
-// app.use("/bms/", apiLimited);
+app.use(express.urlencoded({ extended: true }));
 
+/**
+ * Prevent MongoDB operator injection (SAFE for Node 18+)
+ * ------------------------------------------------------
+ * Sanitizes only req.body to avoid mutating req.query,
+ * which is read-only in modern Node versions.
+ */
+app.use((req, res, next) => {
+  // Sanitize body (can reassign)
+  if (req.body && typeof req.body === "object") {
+    req.body = mongoSanitize.sanitize(req.body); // replace $ with _ => literal string not mongoDB operator
+  }
+
+  // Sanitize query & params (can't reassign, so sanitize in-place)
+  if (req.query) {
+    Object.keys(req.query).forEach(key => {
+      if (key.includes('$')) {
+        const newKey = key.replace(/\$/g, '_');
+        req.query[newKey] = req.query[key];
+        delete req.query[key];
+      }
+    });
+  }
+  next();
+});
+
+/**
+ * Rate limiter
+ * -------------
+ * Limits repeated requests from same IP
+ * Protects login & booking endpoints from abuse
+ */
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests. Please try again after 15 minutes.",
+  },
+});
+
+/**
+ * Apply rate limiting to API routes only
+ */
+app.use("/bms", apiLimiter);
+
+/**
+ * Public routes (no JWT required)
+ */
 app.use("/bms/v1/users", userRoute);
+
 // always remember to use ( / ) at the start of endpoint 
 
 // Authentication lifecycle (IMPORTANT)
@@ -68,38 +154,41 @@ app.use("/bms/v1/users", userRoute);
 // Reset password	      ❌
 // Get current user 	  ✅
 
+/**
+ * Protected routes (JWT required)
+ */
 app.use("/bms/v1/movies", validateJWTToken, movieRoute);
 app.use("/bms/v1/theatres", validateJWTToken, theatreRoute);
 app.use("/bms/v1/shows", validateJWTToken, showRoute);
 app.use("/bms/v1/bookings", validateJWTToken, bookingRoute);
 
-app.use(errorHandler);
+app.use(errorHandler); // Centralized error handler
 
 // The server will first check if the dot environment variable is set. 
 // If it is, the server will use that value.
 // it is helpful to configure it in different environments like development, staging, production 
 
+// Start server
 app.listen(process.env.PORT, () => {
-    console.log(`Server is running on ${process.env.PORT}`);
+  console.log(`Server is running on ${process.env.PORT}`);
 });
 
 
 
-// process.env is an object that contains the user environment variables (like system 
+// process.env is an object that contains the user environment variables (like system
 // settings and configuration values) for the current Node.js process
 
-// note down everything inside of .env file while attending lectures 
+// note down everything inside of .env file while attending lectures
 
-// dotenv is a Node.js package that allows you to load environment variables from a 
+// dotenv is a Node.js package that allows you to load environment variables from a
 // special file called .env into process.env.
 
 // ✅ Keeps secrets out of your code
 // ✅ Makes deployment easier (different .env files for dev, test, prod)
 // ✅ Easy to change configuration without editing code
 
-// process is a global object in Node.js that provides information and control 
+// process is a global object in Node.js that provides information and control
 // about the current Node.js program (the process that’s running your app).
 
 // You can think of it as a built-in object that represents the environment where
 //  your Node.js code is running — including system info, environment variables, and runtime controls.
-

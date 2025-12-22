@@ -2,7 +2,7 @@ const stripe = require("stripe")(process.env.STRIPE_KEY);
 const Booking = require("../models/bookingSchema");
 const Show = require("../models/showSchema");
 const emailHelper = require("../utils/emailHelper");
-// const mongoose = require("mongoose");
+const mongoose = require("mongoose");
 
 const createPaymentIntent = async (req, res, next) => {
   try {
@@ -33,6 +33,7 @@ const createPaymentIntent = async (req, res, next) => {
     next(error);
   }
 };
+
 // auto payment method => UPI, NetBanking, Card
 // frontend uses clientSecret to show Stripe payment UI 
 // it is used to complete one specific payment on frontend
@@ -40,73 +41,6 @@ const createPaymentIntent = async (req, res, next) => {
 
 // secretKey => manage stripe, create payment intent, refunds
 // client secret => complete a specific payment only
-
-
-const bookShow = async (req, res, next) => {
-  try {
-    const newBooking = new Booking(req.body);
-    await newBooking.save();
-
-    const show = await Show.findById(req.body.show);
-    const updatedBookedSeats = [...show.bookedSeats, ...req.body.seats];
-
-    await Show.findByIdAndUpdate(req.body.show, {
-      bookedSeats: updatedBookedSeats,
-    });
-
-    // ⚠️ This is seat locking logic
-    // Prevents double booking
-
-    const populatedBooking = await Booking.findById(newBooking._id)
-      // we are re-fetching to populate related data
-      .populate({
-        path: "user",
-        select: "-password",
-      })
-      .populate({
-        path: "show",
-        populate: {
-          path: "movie",
-          model: "movies",
-        },
-      })
-      .populate({
-        path: "show",
-        populate: {
-          path: "theatre",
-          model: "theatres",
-        },
-      });
-
-    const metaData = {
-      name: populatedBooking.user.name,
-      movie: populatedBooking.show.movie.movieName,
-      theatre: populatedBooking.show.theatre.name,
-      date: populatedBooking.show.date,
-      time: populatedBooking.show.time,
-      seats: populatedBooking.seats,
-      amount: populatedBooking.seats.length * populatedBooking.show.ticketPrice,
-      transactionId: populatedBooking.transactionId,
-    };
-    // metaData is used to replace placeholders in HTML 
-
-    await emailHelper(
-      "ticketTemplate.html",
-      populatedBooking.user.email,
-      metaData
-    );
-
-    res.send({
-      success: true,
-      message: "Payment Successful",
-      data: newBooking,
-    });
-  } catch (error) {
-    res.status(400);
-    next(error);
-  }
-};
-
 
 
 const getAllBookings = async (req, res, next) => {
@@ -142,6 +76,169 @@ const getAllBookings = async (req, res, next) => {
   }
 };
 
+const makePaymentAndBookShow = async (req, res, next) => {
+  // MongoDB session allows us to group multiple DB operations
+  // into a single atomic transaction (all succeed or all fail)
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const {
+      show: showId,
+      seats,
+      paymentIntentId, // payment already created & confirmed on frontend
+      user,
+    } = req.body;
+
+    /**
+     * STEP 1: Verify payment with Stripe
+     * ----------------------------------
+     * We NEVER charge the card again here.
+     * The frontend already confirmed the payment using Stripe PaymentElement.
+     * Backend responsibility = verify payment status.
+     */
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    // Stripe payment must be "succeeded" before proceeding
+    if (paymentIntent.status !== "succeeded") {
+      throw new Error("Payment not successful");
+    }
+
+    /**
+     * STEP 2: Atomically lock seats
+     * ------------------------------
+     * This query does TWO things at once:
+     * 1. Checks that none of the requested seats are already booked
+     * 2. If they are free, pushes them into bookedSeats
+     *
+     * Why `$nin`?
+     * - `$nin` ensures none of the requested seats exist in bookedSeats
+     * - If even ONE seat is booked, the update fails (returns null)
+     *
+     * This prevents race conditions in concurrent bookings
+     * Because this checks the data in DB & not in Node.js memory which creates race conditions
+     * and collisions under high traffic by double booking
+     * It works best in high traffic
+     * 
+     * Transactions do not serialize reads, Transactions ≠ locks
+     * Only the database can safely decide who wins.
+     */
+    const show = await Show.findOneAndUpdate(  // Show.findOneAndUpdate(filter, update, options)
+      {
+        _id: showId,
+        bookedSeats: { $nin: seats },  // $nin means None of these values should be present 
+      },
+      {
+        $push: { bookedSeats: { $each: seats } },   // push & $each Adds multiple items at once
+      },
+      {
+        new: true,   // return updated document
+        session,    // bind this update to the transaction
+      }
+    );
+
+    // If show is null → at least one seat was already booked
+    if (!show) {
+      throw new Error("One or more seats already booked");
+    }
+
+    /**
+     * STEP 3: Create booking document
+     * --------------------------------
+     * We store Stripe's paymentIntent.id as transactionId
+     * This acts as:
+     * - payment reference
+     * - refund reference
+     * - audit trail
+     */
+    const booking = new Booking({
+      user,
+      show: showId,
+      seats,
+      transactionId: paymentIntent.id,
+      amount: paymentIntent.amount, // stored in smallest currency unit
+      paymentStatus: paymentIntent.status,
+    });
+
+    await booking.save({ session });
+
+    /**
+     * STEP 4: Populate booking for frontend + email
+     * ----------------------------------------------
+     * We re-fetch the booking so that:
+     * - user details
+     * - movie
+     * - theatre
+     * are fully populated
+     */
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate({ path: "user", select: "-password" })
+      .populate({
+        path: "show",
+        populate: [
+          { path: "movie", model: "movies" },
+          { path: "theatre", model: "theatres" },
+        ],
+      })
+      .session(session);
+
+    /**
+     * STEP 5: Commit transaction
+     * ---------------------------
+     * At this point:
+     * - seats are locked
+     * - booking is saved
+     * If commit succeeds, data is permanently written.
+     */
+    await session.commitTransaction();
+    session.endSession();
+
+    /**
+     * STEP 6: Send email (non-blocking)
+     * ---------------------------------
+     * Email failures should NOT affect booking success.
+     * Hence, we do not await this.
+     */
+    emailHelper("ticketTemplate.html", populatedBooking.user.email, {
+      name: populatedBooking.user.name,
+      movie: populatedBooking.show.movie.movieName,
+      theatre: populatedBooking.show.theatre.name,
+      date: populatedBooking.show.date,
+      time: populatedBooking.show.time,
+      seats: populatedBooking.seats,
+      amount: populatedBooking.amount / 100, // convert paise → rupees
+      transactionId: populatedBooking.transactionId,
+    }).catch(console.error);
+
+    res.send({
+      success: true,
+      message: "Payment and booking successful",
+      data: populatedBooking,
+    });
+
+  } catch (error) {
+    /**
+     * Any error → rollback all DB operations
+     * Ensures no partial booking or seat lock happens
+     */
+    await session.abortTransaction();
+    session.endSession();
+
+    /**
+     * Optional improvement:
+     * If seat conflict occurs after payment,
+     * we can trigger Stripe refund here.
+     */
+    // if (error.message.includes("already booked")) {
+    //   await stripe.refunds.create({ payment_intent: paymentIntentId });
+    // }
+
+    res.status(400);
+    next(error);
+  }
+};
+
+
 
 
 
@@ -149,5 +246,5 @@ module.exports = {
   bookShow,
   createPaymentIntent,
   getAllBookings,
-
+  makePaymentAndBookShow,
 };

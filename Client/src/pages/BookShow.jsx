@@ -227,23 +227,23 @@ const BookShow = () => {
           <div className="screen-div"></div>
 
           <ul className="seat-ul justify-content-center">
-//                     {/* Array.from(Array(rows).keys()) =>
+            {/* Array.from(Array(rows).keys()) =>
 
-//                     Array(rows) → creates an empty array with rows length
-//                     Example: if rows = 5, you get:
-//                     [empty × 5]
+                     Array(rows) → creates an empty array with rows length
+                     Example: if rows = 5, you get:
+                     [empty × 5]
 
-//                     Array(rows).keys() → returns the indexes of the array
-//                     Example:
-//                     [0, 1, 2, 3, 4] (an iterator)
+                     Array(rows).keys() → returns the indexes of the array
+                     Example:
+                     [0, 1, 2, 3, 4] (an iterator)
 
-//                     Array.from() → converts the iterator into a real array.
+                     Array.from() → converts the iterator into a real array.
 
-//                     Final output:
-//                     [0, 1, 2, ..., rows-1] 
+                     Final output:
+                     [0, 1, 2, ..., rows-1] 
 
-//                     same thing happens with columns to create a grid of (rows * columns) 
-//                     */}
+                     same thing happens with columns to create a grid of (rows * columns) 
+                    */}
             {Array.from({ length: rows }).map((_, row) =>
               Array.from({ length: columns }).map((_, column) => {
                 const seatNumber = row * columns + column + 1;
@@ -304,7 +304,7 @@ const BookShow = () => {
                   <h3>
                     Total Seats: {show.totalSeats}
                     <span> &nbsp;|&nbsp; Available Seats: </span>
-                       {/* &nbsp; stands for:
+                    {/* &nbsp; stands for:
                           Non-Breaking Space
                           It is a special HTML character used when you want to add a space that the browser will not collapse or break across lines. 
                           Total Seats: 50 | Available Seats: 20 

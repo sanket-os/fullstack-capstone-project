@@ -243,7 +243,6 @@ const makePaymentAndBookShow = async (req, res, next) => {
 
 
 module.exports = {
-  bookShow,
   createPaymentIntent,
   getAllBookings,
   makePaymentAndBookShow,

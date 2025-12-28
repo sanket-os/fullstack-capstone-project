@@ -35,7 +35,7 @@ const MyBookings = () => {
       {bookings && (
         <Row gutter={24}>
           {bookings
-            // .filter(b => b.show)
+            .filter(b => b.show)
             .map((booking) => {
             return (
               <Col key={booking._id} xs={{ span: 24 }} lg={{ span: 12 }}>

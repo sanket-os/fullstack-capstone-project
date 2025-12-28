@@ -15,6 +15,7 @@ const bookingRoute = require("./routes/bookingRoute");
 
 const errorHandler = require("./middlewares/errorHandler");
 const { validateJWTToken } = require("./middlewares/authorizationMiddleware");
+const cors = require("cors");
 
 
 const app = express();
@@ -80,6 +81,7 @@ app.use(
 /**
  * Body parser
  */
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -116,7 +118,7 @@ app.use((req, res, next) => {
  */
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

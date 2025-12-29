@@ -16,9 +16,13 @@ const bookingRoute = require("./routes/bookingRoute");
 const errorHandler = require("./middlewares/errorHandler");
 const { validateJWTToken } = require("./middlewares/authorizationMiddleware");
 const cors = require("cors");
+const path = require("path");
 
 
 const app = express();
+
+const clientBuildPath = path.join(__dirname, "../Client/dist");
+app.use(express.static(clientBuildPath));
 
 
 connectDB();

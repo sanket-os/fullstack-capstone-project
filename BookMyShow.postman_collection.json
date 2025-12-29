@@ -1,0 +1,484 @@
+{
+	"info": {
+		"_postman_id": "6eb3f4ce-990a-43ed-8f6a-233ca3b321ba",
+		"name": "BookMyShow",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43720611",
+		"_collection_link": "https://sanket-2913943.postman.co/workspace/Sanket's-Workspace~6eaa395e-2ac7-4084-8377-d8fc0a3e1c8f/collection/43720611-6eb3f4ce-990a-43ed-8f6a-233ca3b321ba?action=share&source=collection_link&creator=43720611"
+	},
+	"item": [
+		{
+			"name": "RegisterUser",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Sarah\",\r\n    \"email\": \"sarah@gmail.com\",\r\n    \"password\": \"09876\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/bms/v1/users/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bms",
+						"v1",
+						"users",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "LoginUser",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"sarah@gmail.com\",\r\n    \"password\": \"09876\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/bms/v1/users/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bms",
+						"v1",
+						"users",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetCurrentUser",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJ1c2VySWQiOiI2OGVmOWNlNTRiZTE3ZmVhZWYwOWQ4NWEiLCJlbWFpbCI6InNoZWlsYUBnbWFpbC5jb20iLCJpYXQiOjE3NjA2MTg0NjUsImV4cCI6MTc2MDcwNDg2NX0",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Sarah\",\r\n    \"email\": \"sarah@gmail.com\",\r\n    \"password\": \"09876\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/bms/v1/users/getCurrentUser",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bms",
+						"v1",
+						"users",
+						"getCurrentUser"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "AddMovie",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"movieName\": \"Before Sunset\",\r\n    \"description\": \"Two strangers meet for a one day and fell for each other & they have to leave tomorrow\",\r\n    \"duration\": 115,\r\n    \"genre\": \"Romance/Drama\",\r\n    \"language\": \"English\",\r\n    \"releaseDate\": \"2010-10-04\",\r\n    \"poster\": \"https://play-lh.googleusercontent.com/proxy/31DY1qETjV_MhJgFWnYL-sBV48HMAkaI1PFPCg06aYFz21fvISHg8vmnVgQ8AJJyrTgWPmtvhmxEJlS01fPOwwqNCTrNTgIGMT4Ud3L8RCKdOJQEUw=s1920-w1920-h1080\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/bms/v1/movies/addMovie",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bms",
+						"v1",
+						"movies",
+						"addMovie"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetAllMovies",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"movieName\": \"One Day\",\r\n    \"description\": \"Two people decided to meet each other once in 3 years to develope a bond with each other.\",\r\n    \"duration\": 145,\r\n    \"genre\": \"Romance/Drama\",   \r\n    \"language\": \"English\",\r\n    \"releaseDate\": \"10/01/1994\",\r\n    \"poster\": \"https://i.guim.co.uk/img/static/sys-images/Arts/Arts_/Pictures/2011/8/19/1313768960888/2011-ONE-DAY-007.jpg?width=465&dpr=1&s=none&crop=none\"\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/bms/v1/movies/getAllMovies",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bms",
+						"v1",
+						"movies",
+						"getAllMovies"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateMovie",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"movieId\": \"68f7670bcef2d26bcc1aa069\",\r\n    \"duration\": 190\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/bms/v1/movies/updateMovie",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bms",
+						"v1",
+						"movies",
+						"updateMovie"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteMovie",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n     \"movieId\": \"68f769e6cef2d26bcc1aa071\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/bms/v1/movies/deleteMovie/68fb6aed093d38a966c10ed8",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bms",
+						"v1",
+						"movies",
+						"deleteMovie",
+						"68fb6aed093d38a966c10ed8"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "AddTheatre",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"MIRA Sonic\",\r\n    \"address\": \"MIRA Kharghar\",\r\n    \"phone\": 4545454545,\r\n    \"email\": \"mirasonic@gmail.com\",   \r\n    \"owner\": \"690a1b99d05b5bc1b4016fe8\",\r\n    \"isActive\": true,\r\n    \"poster\": \"https://i.guim.co.uk/img/static/sys-images/Arts/Arts_/Pictures/2011/8/19/1313768960888/2011-ONE-DAY-007.jpg?width=465&dpr=1&s=none&crop=none\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/bms/v1/theatres/addTheatre",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bms",
+						"v1",
+						"theatres",
+						"addTheatre"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetAllTheatres",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"MIRA Sonic\",\r\n    \"address\": \"MIRA Kharghar\",\r\n    \"phone\": 4545454545,\r\n    \"email\": \"mirasonic@gmail.com\",   \r\n    \"owner\": \"690a1b99d05b5bc1b4016fe8\",\r\n    \"isActive\": true,\r\n    \"poster\": \"https://i.guim.co.uk/img/static/sys-images/Arts/Arts_/Pictures/2011/8/19/1313768960888/2011-ONE-DAY-007.jpg?width=465&dpr=1&s=none&crop=none\"\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:3000/bms/v1/theatres/getAllTheatres",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bms",
+						"v1",
+						"theatres",
+						"getAllTheatres"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetAllThatresByOwner",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userId\": \"68f7682ecef2d26bcc1aa06d\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/bms/v1/theatres/getAllTheatresByOwner",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bms",
+						"v1",
+						"theatres",
+						"getAllTheatresByOwner"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateTheatre",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"theatreId\": \"690b6b75a4a71f7f5d9799a2\",\r\n    \"phone\": 1010101010\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/bms/v1/theatres/updateTheatre",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bms",
+						"v1",
+						"theatres",
+						"updateTheatre"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteTheatre",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"theatreId\": \"690b6ba0a4a71f7f5d9799a5\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/bms/v1/theatres/deleteTheatre/690b6ba0a4a71f7f5d9799a5",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bms",
+						"v1",
+						"theatres",
+						"deleteTheatre",
+						"690b6ba0a4a71f7f5d9799a5"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "AddShow",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{Authorization}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Evening Show\",\r\n  \"date\": \"2025-11-15\",\r\n  \"time\": \"18:30\",\r\n  \"movie\": \"68f7670bcef2d26bcc1aa069\",\r\n  \"ticketPrice\": 250,\r\n  \"totalSeats\": 100,\r\n  \"bookedSeats\": [12, 14, 15],\r\n  \"theatre\": \"690b6bd9a4a71f7f5d9799a8\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/bms/v1/shows/addShow",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"bms",
+						"v1",
+						"shows",
+						"addShow"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

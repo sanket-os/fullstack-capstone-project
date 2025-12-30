@@ -21,8 +21,17 @@ const path = require("path");
 
 const app = express();
 
-const clientBuildPath = path.join(__dirname, "../Client/dist");
-app.use(express.static(clientBuildPath));
+// const clientBuildPath = path.join(__dirname, "../Client/dist");
+// app.use(express.static(clientBuildPath));
+
+
+app.use(express.static(path.join(__dirname, "../Client/dist")));
+
+app.get("*", (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "../Client/dist/index.html")
+  );
+});
 
 
 connectDB();

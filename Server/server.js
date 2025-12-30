@@ -27,11 +27,12 @@ const app = express();
 
 app.use(express.static(path.join(__dirname, "../Client/dist")));
 
-app.get("*", (req, res) => {
-  res.sendFile(
-    path.join(__dirname, "../Client/dist/index.html")
-  );
-});
+// we have included the distribution folder by npm run build command on the frontend side
+// with the help of dist folder we do static rendering on backend as shown above
+// build cmd turns code into compiled, optimized, bundled & minified form
+// we do static rendering and client side rendering here 
+
+// These files are static and can be served by Nginx, Render, Netlify, S3, etc.  
 
 
 connectDB();
@@ -178,6 +179,13 @@ app.use("/bms/v1/shows", validateJWTToken, showRoute);
 app.use("/bms/v1/bookings", validateJWTToken, bookingRoute);
 
 app.use(errorHandler); // Centralized error handler
+
+// SPA fallback
+app.get(/.*/, (req, res) => {
+  res.sendFile(
+    path.join(__dirname, "../Client/dist/index.html")
+  );
+});
 
 // The server will first check if the dot environment variable is set. 
 // If it is, the server will use that value.

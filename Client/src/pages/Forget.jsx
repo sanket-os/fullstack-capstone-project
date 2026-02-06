@@ -13,15 +13,15 @@ const Forget = () => {
     if (localStorage.getItem("tokenForBMS")) {
       navigate("/");
     }
-  }, []);
+  }, [navigate]);
 
   const onFinish = async (values) => {
     try {
       dispatch(showLoading());
       const response = await ForgetPassword(values);
       if (response.success) {
-        message.success(response.message);
-        alert("OTP sent to your email");
+        message.success("OTP sent to your email");
+        // alert("OTP sent to your email");
         navigate("/reset");
       } else {
         if (response.message === "Please use otp sent on mail") {

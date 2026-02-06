@@ -4,7 +4,7 @@ const {
     currentUser,
     forgetPassword,
     resetPassword,
-} = require("../controllers/UserController");
+} = require("../controllers/userController");
 const { validateJWTToken } = require("../middlewares/authorizationMiddleware");
 
 const router = require("express").Router();

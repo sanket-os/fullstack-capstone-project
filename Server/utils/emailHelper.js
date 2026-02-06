@@ -48,9 +48,12 @@ function escapeRegExp(string) {
 
 function replaceContent(content, metaData) {
   return Object.keys(metaData).reduce((updatedContent, key) => {
+
     const pattern = escapeRegExp(`#{${key}}`);
     const regex = new RegExp(pattern, "g");
+
     const replacement = metaData[key] == null ? "" : String(metaData[key]);
+    
     return updatedContent.replace(regex, () => replacement);
   }, content);
 }
@@ -77,6 +80,7 @@ async function emailHelper(templateName, receiverEmail, metaData) {
 //   metaData → dynamic values to fill inside the template (like name, booking ID)
   try {
     const templatePath = path.join(__dirname, "email_templates", templateName);
+
     let content = await fs.promises.readFile(templatePath, "utf-8");
     content = replaceContent(content, metaData);
 
@@ -89,14 +93,18 @@ async function emailHelper(templateName, receiverEmail, metaData) {
 
     await transport.sendMail(emailDetails);
     console.log("email sent");
-  } catch (err) {
+    
+  } 
+  catch (err) {
     if (err.code === "ENOENT") {
         // - error.code = ENOENT
         // - means no entry / no entity exist
       console.error("Template file not found:", err.message);
-    } else if (err.response && err.response.body) {
+    } 
+    else if (err.response && err.response.body) {
       console.error("Error sending email:", err.response.body);
-    } else {
+    } 
+    else {
       console.error("Error occurred:", err.message);
     }
   }

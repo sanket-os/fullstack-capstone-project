@@ -1,10 +1,19 @@
 const mongoose = require("mongoose");
 
+/**
+ * ----------------------------------------------------
+ * Database Connection
+ * ----------------------------------------------------
+ * Establishes a connection to MongoDB using Mongoose.
+ * The connection string is externalized via environment
+ * variables to avoid hardcoding sensitive information.
+ */
 const connectDB = async () => {
     try {
-        const response = await mongoose.connect(
-            process.env.MONGODB_CONNECTION
-        );
+        await mongoose.connect(process.env.MONGO_URI, {
+            autoIndex: false, // disable auto index creation in production
+        });
+
         // i have used my mongodb key inside of the .env (environment var file) along with the PORT
         // connection to maintain secrecy about sensitive info and enhance my security, it uses key-val pairs
 
@@ -12,7 +21,7 @@ const connectDB = async () => {
         // to manage varying configurations without modifying the codebase
 
         console.log("MongoDB connection is Successful ");
-    } catch(error) {
+    } catch (error) {
         console.log("MongoDB connection error ", error);
         process.exit(1); // i am terminating server operations whenever there is a problem with DB connection
     }

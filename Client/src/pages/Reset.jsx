@@ -23,7 +23,7 @@ function Reset() {
         navigate("/forget");
       }
     } catch (error) {
-      message.error(error.message);
+      message.error(error?.message || "Password reset failed");
     } finally {
       dispatch(hideLoading());
     }
@@ -33,7 +33,7 @@ function Reset() {
     if (localStorage.getItem("tokenForBMS")) {
       navigate("/");
     }
-  }, []);
+  }, [navigate]);
 
   return (
     <>
@@ -56,7 +56,8 @@ function Reset() {
               >
                 <Input
                   id="otp"
-                  type="number"
+                  type="text" 
+                  inputMode="numeric"
                   placeholder="Enter your otp"
                 ></Input>
               </Form.Item>

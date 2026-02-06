@@ -3,95 +3,107 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const emailHelper = require("../utils/emailHelper");
 
+/**
+ * ----------------------------------------------------
+ * Register User
+ * ----------------------------------------------------
+ */
 const registerUser = async (req, res, next) => {
-    try {
-        const userExists = await userModel.findOne({ email: req?.body?.email });
-        if (userExists) {
-            return res.send({
-                success: false,
-                message: "User Already Exists",
-            });
-        }
+  try {
+    const userExists = await userModel.findOne({ email: req?.body?.email });
 
-        // hashing 
-        const salt = await bcrypt.genSalt(10); // 2^10 ~ 1024 rounds of key expansion inside bcrypt algo
-        // not literally hashing 1024 times 
-
-        const hashedPassword = await bcrypt.hash(req?.body?.password, salt);
-        // console.log("hashed password", hashedPassword);
-        req.body.password = hashedPassword;
-
-        // internally bcrypt uses EksBlowfish key setup algo, applies it to 2^N times
-        // to mix password and salt into encryption key state 
-        // uses that state to encrypt const text to produce final hash
-
-        const newUser = new userModel(req?.body);
-        // console.log("newUser :", newUser);
-        await newUser.save(); // Wait for the save operation to complete
-        // save will insert document or update the db object 
-        // it validates before saving to ensure data type, required fields or custom validation func's
-
-        res.send({
-            success: true,
-            message: "Registration Successful, Please Login",
-        });
-
-    } catch (error) {
-        // console.log(error);
-        res.status(400);
-        next(error);
+    if (userExists) {
+      return res.send({
+        success: false,
+        message: "User Already Exists",
+      });
     }
+
+    // hashing 
+    const salt = await bcrypt.genSalt(10); // 2^10 ~ 1024 rounds of key expansion inside bcrypt algo
+    // not literally hashing 1024 times 
+
+    const hashedPassword = await bcrypt.hash(req?.body?.password, salt);
+    // console.log("hashed password", hashedPassword);
+    req.body.password = hashedPassword;
+
+    // internally bcrypt uses EksBlowfish key setup algo, applies it to 2^N times
+    // to mix password and salt into encryption key state 
+    // uses that state to encrypt const text to produce final hash
+
+    const newUser = new userModel(req?.body);
+    // console.log("newUser :", newUser);
+    await newUser.save(); // Wait for the save operation to complete
+    // save will insert document or update the db object 
+    // it validates before saving to ensure data type, required fields or custom validation func's
+
+    res.send({
+      success: true,
+      message: "Registration Successful. Please Login.",
+    });
+
+  } catch (error) {
+    // console.log(error);
+    res.status(400);
+    next(error);
+  }
 };
 
+/**
+ * ----------------------------------------------------
+ * Login User
+ * ----------------------------------------------------
+ */
 const loginUser = async (req, res, next) => {
   // console.log("LOGIN ATTEMPT BODY:", req.body);
-    try {
-        const user = await userModel.findOne({ email: req?.body?.email });
+  try {
+    const user = await userModel.findOne({ email: req?.body?.email })
+     .select("+password");;
 
-        if (!user) {
-            return res.send({
-                success: false,
-                message: "User does not exist. Please register",
-            });
-        }
-
-        // if (req?.body?.password !== user?.password) {
-        const validatePassword = await bcrypt.compare(
-            req?.body?.password,
-            user?.password
-        );
-
-        if (!validatePassword) {
-            return res.send({
-                success: false,
-                message: "Please enter a valid password",
-            });
-        }
-
-        const token = jwt.sign(
-            { userId: user._id, email: user.email },
-            process.env.SECRET_KEY,
-            { expiresIn: "1d" }
-        );
-
-        // jwt.sign() creates a JWT token.
-        // Payload: { userId, email }
-        // This is the data encoded into the token.
-        // Secret key: process.env.SECRET_KEY
-        // Used to sign and later verify the token (keep it private!).
-        // Options: { expiresIn: "1d" }
-        // expires after 1 day
-
-        res.send({
-            success: true,
-            message: "You've successfully Logged In",
-            data: token,
-        });
-
-    } catch (error) {
-        res.status(400);
-        next(error);
+    if (!user) {
+      return res.send({
+        success: false,
+        message: "User does not exist. Please register",
+      });
     }
+
+    // if (req?.body?.password !== user?.password) {
+    const validatePassword = await bcrypt.compare(
+      req?.body?.password,
+      user?.password
+    );
+
+    if (!validatePassword) {
+      return res.send({
+        success: false,
+        message: "Please enter a valid password",
+      });
+    }
+
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.SECRET_KEY,
+      { expiresIn: "1d" }
+    );
+
+    // jwt.sign() creates a JWT token.
+    // Payload: { userId, email }
+    // This is the data encoded into the token.
+    // Secret key: process.env.SECRET_KEY
+    // Used to sign and later verify the token (keep it private!).
+    // Options: { expiresIn: "1d" }
+    // expires after 1 day
+
+    res.send({
+      success: true,
+      message: "Login successful",
+      data: token,
+    });
+
+  } catch (error) {
+    res.status(400);
+    next(error);
+  }
 };
 
 // We use user._id because _id is the real MongoDB ID, created automatically.
@@ -102,22 +114,36 @@ const loginUser = async (req, res, next) => {
 // Only _id is meant to start with _, and using underscore prefixes for normal fields causes confusion and breaks conventions.
 // MongoDB stores the primary key as _id, not id.
 
+
+/**
+ * ----------------------------------------------------
+ * Get Current User
+ * ----------------------------------------------------
+ */
 const currentUser = async (req, res, next) => {
-    try {
-        const user = await userModel.findById(req.body.userId).select("-password"); // excludes password
-        
-        res.send({
-            success: true,
-            message: "User Details Fetched Successfully",
-            data: user,
-        });
-    } catch (error) {   
-        res.status(400);
-        next(error);
+  try {
+    const user = await userModel.findById(req.body.userId).select("-password"); // excludes password
+
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
     }
+
+    res.send({
+      success: true,
+      message: "User Details Fetched Successfully",
+      data: user,
+    });
+  } catch (error) {
+    next(error);
+  }
 }
 
-
+/**
+ * ----------------------------------------------------
+ * Forget Password (Send OTP)
+ * ----------------------------------------------------
+ */
 const forgetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -125,7 +151,7 @@ const forgetPassword = async (req, res, next) => {
     if (email == undefined) {
       return res.status(401).json({
         status: "false",
-        message: "Please enter the email for forget Password",
+        message: "Please enter the email",
       });
     }
 
@@ -134,16 +160,18 @@ const forgetPassword = async (req, res, next) => {
     if (user == null) {
       return res.status(404).json({
         status: false,
-        message: "user not found",
+        message: "User not found",
       });
-    } else if (user?.otp != undefined && user.otp < user?.otpExpiry) {
+    } 
+    else if (user?.otp != undefined && user.otp < user?.otpExpiry) 
+    {
       return res.json({
         success: false,
-        message: "Please use otp sent on mail",
+        message: "OTP already sent. Please check your email",
       });
     }
 
-    const otp = Math.floor(Math.random() * 10000 + 90000);
+    const otp = Math.floor(100000 + Math.random() * 900000); // 6-digit OTP
     user.otp = otp;
     user.otpExpiry = Date.now() + 10 * 60 * 1000;
 
@@ -156,7 +184,7 @@ const forgetPassword = async (req, res, next) => {
 
     res.send({
       success: true,
-      message: "Otp has been sent",
+      message: "OTP has been sent to email",
     });
   } catch (err) {
     res.status(400);
@@ -164,6 +192,11 @@ const forgetPassword = async (req, res, next) => {
   }
 };
 
+/**
+ * ----------------------------------------------------
+ * Reset Password
+ * ----------------------------------------------------
+ */
 const resetPassword = async (req, res, next) => {
   try {
     const { password, otp } = req.body;
@@ -171,7 +204,7 @@ const resetPassword = async (req, res, next) => {
     if (password == undefined || otp == undefined) {
       return res.status(401).json({
         success: false,
-        message: "invalid request",
+        message: "Password and OTP are required",
       });
     }
 
@@ -180,7 +213,7 @@ const resetPassword = async (req, res, next) => {
     if (user == null) {
       return res.status(404).json({
         success: false,
-        message: "user not found",
+        message: "Invalid OTP",
       });
     }
 
@@ -192,7 +225,7 @@ const resetPassword = async (req, res, next) => {
 
       return res.status(401).json({
         success: false,
-        message: "otp expired",
+        message: "OTP expired",
       });
     }
 
@@ -207,10 +240,10 @@ const resetPassword = async (req, res, next) => {
     user.otpExpiry = undefined;
 
     await user.save();
-    
+
     res.send({
       success: true,
-      message: "Password reset has been done successfully",
+      message: "Password reset successful",
     });
   } catch (err) {
     res.status(400);
@@ -219,9 +252,9 @@ const resetPassword = async (req, res, next) => {
 };
 
 module.exports = {
-    registerUser,
-    loginUser,
-    currentUser,
-    forgetPassword,
-    resetPassword,
+  registerUser,
+  loginUser,
+  currentUser,
+  forgetPassword,
+  resetPassword,
 };

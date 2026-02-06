@@ -1,12 +1,24 @@
 const stripe = require("stripe")(process.env.STRIPE_KEY);
+const mongoose = require("mongoose");
 const Booking = require("../models/bookingSchema");
 const Show = require("../models/showSchema");
 const emailHelper = require("../utils/emailHelper");
-const mongoose = require("mongoose");
 
+/**
+ * ----------------------------------------------------
+ * Create Stripe Payment Intent
+ * ----------------------------------------------------
+ * Frontend confirms payment using Stripe PaymentElement.
+ * Backend responsibility: create intent only.
+ */
 const createPaymentIntent = async (req, res, next) => {
   try {
     const { amount } = req.body;
+
+     if (!amount || amount <= 0) {
+      res.status(400);
+      throw new Error("Invalid payment amount");
+    }
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
@@ -25,7 +37,7 @@ const createPaymentIntent = async (req, res, next) => {
       success: true,
       clientSecret: paymentIntent.client_secret,
       // frontend uses with <PaymentElement />, it completes only THIS payment, no create/refund payments
-      data: transactionId,
+      data: paymentIntent.id,
     });
   } catch (error) {
     console.log(error);
@@ -42,7 +54,11 @@ const createPaymentIntent = async (req, res, next) => {
 // secretKey => manage stripe, create payment intent, refunds
 // client secret => complete a specific payment only
 
-
+/**
+ * ----------------------------------------------------
+ * Get All Bookings for Logged-in User
+ * ----------------------------------------------------
+ */
 const getAllBookings = async (req, res, next) => {
   try {
     const bookings = await Booking.find({ user: req.body.userId })
@@ -67,7 +83,7 @@ const getAllBookings = async (req, res, next) => {
       });
     res.send({
       success: true,
-      message: "Bookings Fetched",
+      message: "Bookings fetched successfully",
       data: bookings,
     });
   } catch (error) {
@@ -76,6 +92,15 @@ const getAllBookings = async (req, res, next) => {
   }
 };
 
+/**
+ * ----------------------------------------------------
+ * Make Payment & Book Show (Atomic Operation)
+ * ----------------------------------------------------
+ * Guarantees:
+ * - Payment verified
+ * - Seats locked atomically
+ * - Booking created transactionally
+ */
 const makePaymentAndBookShow = async (req, res, next) => {
   // MongoDB session allows us to group multiple DB operations
   // into a single atomic transaction (all succeed or all fail)
@@ -87,11 +112,29 @@ const makePaymentAndBookShow = async (req, res, next) => {
       show: showId,
       seats,
       paymentIntentId, // payment already created & confirmed on frontend
-      user,
+      user, // injected by auth middleware
     } = req.body;
 
+    if (!showId || !seats?.length || !paymentIntentId || !user) {
+      res.status(400);
+      throw new Error("Missing required booking details");
+    }
+
     /**
-     * STEP 1: Verify payment with Stripe
+     * STEP 1: Idempotency check
+     * Prevent duplicate booking for same paymentIntent
+     */
+    const existingBooking = await Booking.findOne({
+      transactionId: paymentIntentId,
+    });
+
+    if (existingBooking) {
+      res.status(409);
+      throw new Error("Duplicate booking attempt detected");
+    }
+
+    /**
+     * STEP 2: Verify payment with Stripe
      * ----------------------------------
      * We NEVER charge the card again here.
      * The frontend already confirmed the payment using Stripe PaymentElement.
@@ -101,11 +144,12 @@ const makePaymentAndBookShow = async (req, res, next) => {
 
     // Stripe payment must be "succeeded" before proceeding
     if (paymentIntent.status !== "succeeded") {
+      res.status(400);
       throw new Error("Payment not successful");
     }
 
     /**
-     * STEP 2: Atomically lock seats
+     * STEP 3: Atomically lock seats
      * ------------------------------
      * This query does TWO things at once:
      * 1. Checks that none of the requested seats are already booked
@@ -139,11 +183,12 @@ const makePaymentAndBookShow = async (req, res, next) => {
 
     // If show is null → at least one seat was already booked
     if (!show) {
+      res.status(409); // Conflict
       throw new Error("One or more seats already booked");
     }
 
     /**
-     * STEP 3: Create booking document
+     * STEP 4: Create booking document
      * --------------------------------
      * We store Stripe's paymentIntent.id as transactionId
      * This acts as:
@@ -163,7 +208,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
     await booking.save({ session });
 
     /**
-     * STEP 4: Populate booking for frontend + email
+     * STEP 5: Populate booking for frontend + email
      * ----------------------------------------------
      * We re-fetch the booking so that:
      * - user details
@@ -183,7 +228,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
       .session(session);
 
     /**
-     * STEP 5: Commit transaction
+     * STEP 6: Commit transaction
      * ---------------------------
      * At this point:
      * - seats are locked
@@ -194,7 +239,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
     session.endSession();
 
     /**
-     * STEP 6: Send email (non-blocking)
+     * STEP 7: Send email (non-blocking)
      * ---------------------------------
      * Email failures should NOT affect booking success.
      * Hence, we do not await this.
@@ -237,8 +282,6 @@ const makePaymentAndBookShow = async (req, res, next) => {
     next(error);
   }
 };
-
-
 
 
 

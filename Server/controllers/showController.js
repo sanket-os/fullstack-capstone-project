@@ -1,61 +1,112 @@
 const Show = require("../models/showSchema");
 
+/**
+ * ----------------------------------------------------
+ * Add Show (Admin)
+ * ----------------------------------------------------
+ */
 const addShow = async (req, res, next) => {
     try {
+
+        if (!req.body || Object.keys(req.body).length === 0) {
+            res.status(400);
+            throw new Error("Show details are required");
+        }
+
         const newShow = new Show(req.body);
         await newShow.save();
+
+
         res.send({
             success: true,
-            message: "New show has been added!",
+            message: "New show has been added",
         })
     } catch (error) {
-        res.status(400);
         next(error);
     }
 };
 
+/**
+ * ----------------------------------------------------
+ * Delete Show (Admin)
+ * ----------------------------------------------------
+ */
 const deleteShow = async (req, res, next) => {
     try {
         const showId = req.params.showId;
-        await Show.findByIdAndDelete(showId);
+
+        const deletedShow = await Show.findByIdAndDelete(showId);
+
+        if (!deletedShow) {
+            res.status(404);
+            throw new Error("Show not found");
+        }
+
         res.send({
             success: true,
-            message: "The show has been deleted!",
+            message: "Show deleted successfully",
         });
     } catch (error) {
-        res.status(400);
         next(error);
     }
 };
 
+/**
+ * ----------------------------------------------------
+ * Update Show (Admin)
+ * ----------------------------------------------------
+ */
 const updateShow = async (req, res, next) => {
     try {
-        await Show.findByIdAndUpdate(req.body.showId, req.body, {
-            new: true,
-        });
+        const { showId, ...updateData } = req.body;
+
+        if (!showId) {
+            res.status(400);
+            throw new Error("showId is required");
+        }
+
+        const updatedShow = await Show.findByIdAndUpdate(
+            showId,
+            updateData,
+            { new: true }
+        );
+
+        if (!updatedShow) {
+            res.status(404);
+            throw new Error("Show not found");
+        }
+
         res.send({
             success: true,
-            message: "The show has been updated!",
+            message: "Show updated successfully",
+            data: updatedShow,
         });
     } catch (error) {
-        res.status(400);
         next(error);
     }
 };
 
+/**
+ * ----------------------------------------------------
+ * Get All Shows by Theatre
+ * ----------------------------------------------------
+ */
 const getAllShowsByTheatre = async (req, res, next) => {
     try {
         const theatreId = req.params.theatreId;
+
         const shows = await Show.find({
             theatre: theatreId
         }).populate("movie");
+
+
         res.send({
             success: true,
             message: "All shows are fetched",
             data: shows,
         });
     } catch (error) {
-        res.status(400);
+        res.status(500);
         next(error);
     }
 };
@@ -74,8 +125,13 @@ const getAllShowsByTheatre = async (req, res, next) => {
 //  Show
 //  ├── movie: { title: "Dune", year: 2024, ... }
 //  └── theatre: { name: "PVR Inox", city: "Mumbai", ... }
- 
 
+
+/**
+ * ----------------------------------------------------
+ * Get All Theatres by Movie & Date
+ * ----------------------------------------------------
+ */
 const getAllTheatresByMovie = async (req, res, next) => {
     try {
         const { movie, date } = req.body;
@@ -113,7 +169,6 @@ const getAllTheatresByMovie = async (req, res, next) => {
     }
 };
 
-
 // Property	        Meaning
 // show	            Mongoose Document (wrapper + methods + metadata)
 // show._doc	    Raw data stored in MongoDB (the part you really care about)
@@ -132,11 +187,18 @@ const getAllTheatresByMovie = async (req, res, next) => {
 // Then you no longer need _doc.
 
 
+/**
+ * ----------------------------------------------------
+ * Get Show by ID
+ * ----------------------------------------------------
+ */
 const getShowById = async (req, res, next) => {
     try {
         const shows = await Show.findById(req.params.showId)
             .populate("movie")
             .populate("theatre");
+
+
         res.send({
             success: true,
             message: "All shows are fetched",

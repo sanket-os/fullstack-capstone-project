@@ -17,6 +17,14 @@
   justify-content: center;
 }
 
+.movie-poster {
+  transition: transform 0.3s ease;
+}
+
+.movie-poster:hover {
+  transform: scale(1.05);
+}
+
 .d-flex {
   display: flex;
 }

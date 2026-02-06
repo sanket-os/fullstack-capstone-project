@@ -3,21 +3,34 @@ import { hideLoading, showLoading } from "../../redux/loaderSlice";
 import { addTheatre, updateTheatre } from "../../api/theatre";
 import { Col, Modal, Row, Form, Input, Button, message } from "antd";
 import TextArea from "antd/es/input/TextArea";
+import { useEffect } from "react";
 
 const TheatreForm = ({
     isModalOpen,
     setIsModalOpen,
     selectedTheatre,
     setSelectedTheatre,
-    formType, 
+    formType,
     fetchTheatreData,
 }) => {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.user);
+    const [form] = Form.useForm();
+
+    useEffect(() => {
+        if (formType === "edit" && selectedTheatre) {
+            form.setFieldsValue(selectedTheatre);
+        } else {
+            form.resetFields();
+        }
+    }, [formType, selectedTheatre, form]);
+
     const onFinish = async (values) => {
         try {
             dispatch(showLoading());
+
             let response = null;
+
             if (formType === "add") {
                 response = await addTheatre({ ...values, owner: user._id });
             } else {
@@ -28,11 +41,12 @@ const TheatreForm = ({
             if (response.success) {
                 message.success(response.message);
                 fetchTheatreData();
+                handleClose();
             } else {
-                message.warning(response.error);
+                message.warning(response?.message || "Operation failed");
             }
         } catch (error) {
-            message.error(error) 
+            message.error(error?.message || "Something went wrong");
         } finally {
             dispatch(hideLoading());
             setSelectedTheatre(null);
@@ -40,9 +54,10 @@ const TheatreForm = ({
         }
     };
 
-    const handleCancel = () => {
+    const handleClose = () => {
         setIsModalOpen(false);
         setSelectedTheatre(null);
+        form.resetFields();
     };
 
     return (
@@ -50,7 +65,7 @@ const TheatreForm = ({
             centered
             title={formType === "add" ? "Add Theatre" : "Edit Theatre"}
             open={isModalOpen}
-            onCancel={handleCancel}
+            onCancel={handleClose}
             width={800}
             footer={null}
         >
@@ -83,6 +98,7 @@ const TheatreForm = ({
                             ></Input>
                         </Form.Item>
                     </Col>
+
                     <Col span={24}>
                         <Form.Item
                             label="Theatre Address"
@@ -116,7 +132,7 @@ const TheatreForm = ({
                                     className="d-block"
                                     rules={[{ required: true, message: "Email is required!" }]}
                                 >
-                                    <Input 
+                                    <Input
                                         id="email"
                                         type="email"
                                         placeholder="Enter the email"
@@ -152,8 +168,8 @@ const TheatreForm = ({
                     >
                         Submit the Data
                     </Button>
-                    
-                    <Button className="mt-3" block onClick={handleCancel}>
+
+                    <Button className="mt-3" block onClick={handleClose}>
                         Cancel
                     </Button>
                 </Form.Item>

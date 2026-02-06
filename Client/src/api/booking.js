@@ -1,13 +1,22 @@
 import { axiosInstance } from ".";
 
+const handleError = (error, fallbackMessage) => {
+  return (
+    error?.response?.data || {
+      success: false,
+      message: fallbackMessage || error.message,
+    }
+  );
+};
+
 export const createPaymentIntent = async (amount) => {
     try {
         const response = await axiosInstance.post("/bookings/createPaymentIntent", {
             amount
         });
         return response.data;
-    } catch (err) {
-        return err.response.data;
+    } catch (error) {
+        return handleError(error, "Failed to create payment intent");
     }
 };
 
@@ -15,8 +24,8 @@ export const getAllBookings = async () => {
   try {
     const response = await axiosInstance.get("/bookings/getAllBookings");
     return response.data;
-  } catch (err) {
-    return err.response;
+  } catch (error) {
+    return handleError(error, "Failed to fetch bookings");
   }
 };
 

@@ -9,7 +9,7 @@ import {
     Table,
     message,
 } from "antd";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import moment from "moment";
 import {
     addShow,
@@ -30,6 +30,7 @@ const ShowModal = ({
 }) => {
 
     const dispatch = useDispatch();
+
     const [view, setView] = useState("table");
     const [shows, setShows] = useState([]);
     const [selectedShow, setSelectedShow] = useState(null);
@@ -38,34 +39,10 @@ const ShowModal = ({
     const handleCancel = () => {
         setIsShowModalOpen(false);
         setSelectedTheatre(null);
+        setView("table");
+        setSelectedShow(null);
     };
 
-    const onFinish = async (values) => {
-        try {
-            dispatch(showLoading());
-            let response = null;
-            if (view === "add") {
-                response = await addShow({ ...values, theatre: selectedTheatre._id });
-            } else {
-                response = await updateShow({
-                    ...values,
-                    showId: selectedShow._id,
-                    theatre: selectedTheatre._id,
-                });
-            }
-            if (response.success) {
-                getData();
-                message.success(response.message);
-                setView("table");
-            } else {
-                message.warning(response.message);
-            }
-        } catch (error) {
-            message.error(error);
-        } finally {
-            dispatch(hideLoading());
-        }
-    };
 
     const getData = async () => {
         try {
@@ -79,30 +56,61 @@ const ShowModal = ({
             const showResponse = await getAllShowsByTheatre({
                 theatreId: selectedTheatre._id,
             });
-            if (showResponse.success) {
+            if (showResponse?.success) {
                 setShows(showResponse.data);
             } else {
-                message.warning(showResponse.message);
+                message.warning(showResponse?.message);
             }
-        } catch (err) {
-            message.error(err.message);
+        } catch (error) {
+            message.error(error?.message || "Failed to load data");
         } finally {
             dispatch(hideLoading());
         }
     };
 
+    const onFinish = async (values) => {
+        try {
+            dispatch(showLoading());
+
+            let response = null;
+            if (view === "add") {
+                response = await addShow({ ...values, theatre: selectedTheatre._id });
+            } else {
+                response = await updateShow({
+                    ...values,
+                    showId: selectedShow._id,
+                    theatre: selectedTheatre._id,
+                });
+            }
+
+            if (response.success) {
+                getData();
+                message.success(response.message);
+                setView("table");
+            } else {
+                message.warning(response?.message);
+            }
+        } catch (error) {
+            message.error(error?.message || "Operation failed");
+        } finally {
+            dispatch(hideLoading());
+        }
+    };
+
+
     const handleDelete = async (showId) => {
         try {
             dispatch(showLoading());
             const response = await deleteShow({ showId: showId });
+
             if (response.success) {
                 message.success(response.message);
                 getData();
             } else {
-                message.warning(response.message);
+                message.warning(response?.message);
             }
-        } catch (err) {
-            message.error(err.message);
+        } catch (error) {
+            message.error(error?.message || "Delete failed");
         } finally {
             dispatch(hideLoading());
         }
@@ -118,21 +126,21 @@ const ShowModal = ({
         {
             title: "Show Date",
             dataIndex: "date",
-            render: (text, data) => {
-                return moment(text).format("MMM Do YYYY");
+            render: (date) => {
+                return moment(date).format("MMM Do YYYY");
             },
         },
         {
             title: "Show Time",
             dataIndex: "time",
-            render: (text, data) => {
-                return moment(text, "HH:mm").format("hh:mm A");
+            render: (time) => {
+                return moment(time, "HH:mm").format("hh:mm A");
             },
         },
         {
             title: "Movie",
             dataIndex: "movie",
-            render: (text, data) => {
+            render: (_, data) => {
                 return data.movie.movieName;
             },
         },
@@ -149,14 +157,14 @@ const ShowModal = ({
         {
             title: "Available Seats",
             dataIndex: "seats",
-            render: (text, data) => {
+            render: (_, data) => {
                 return data.totalSeats - data.bookedSeats.length;
             },
         },
         {
             title: "Action",
             dataIndex: "action",
-            render: (text, data) => {
+            render: (_, data) => {
                 return (
                     <div className="d-flex align-items-center gap-10">
                         <Button
@@ -171,6 +179,7 @@ const ShowModal = ({
                         >
                             <EditOutlined />
                         </Button>
+
                         <Button onClick={() => handleDelete(data._id)}>
                             <DeleteOutlined />
                         </Button>
@@ -182,8 +191,10 @@ const ShowModal = ({
     ];
 
     useEffect(() => {
-        getData();
-    }, []);
+        if (selectedTheatre?._id) {
+            getData();
+        }
+    }, [selectedTheatre]);
 
     return (
         <Modal
@@ -202,12 +213,14 @@ const ShowModal = ({
                             ? "Add Show"
                             : "Edit Show"}
                 </h3>
+
                 {view === "table" && (
                     <Button type="primary" onClick={() => setView("add")}>
                         Add Show
                     </Button>
                 )}
             </div>
+
             {view === "table" && <Table dataSource={shows} columns={columns}
             />}
 
@@ -252,6 +265,7 @@ const ShowModal = ({
                                         ></Input>
                                     </Form.Item>
                                 </Col>
+
                                 <Col span={8}>
                                     <Form.Item
                                         label="Show Date"
@@ -269,6 +283,7 @@ const ShowModal = ({
                                         ></Input>
                                     </Form.Item>
                                 </Col>
+
                                 <Col span={8}>
                                     <Form.Item
                                         label="Show Timing"
@@ -288,6 +303,7 @@ const ShowModal = ({
                                 </Col>
                             </Row>
                         </Col>
+
                         <Col span={24}>
                             <Row
                                 gutter={{
@@ -317,6 +333,7 @@ const ShowModal = ({
                                         />
                                     </Form.Item>
                                 </Col>
+
                                 <Col span={8}>
                                     <Form.Item
                                         label="Ticket Price"
@@ -334,6 +351,7 @@ const ShowModal = ({
                                         ></Input>
                                     </Form.Item>
                                 </Col>
+
                                 <Col span={8}>
                                     <Form.Item
                                         label="Total Seats"
@@ -354,6 +372,7 @@ const ShowModal = ({
                             </Row>
                         </Col>
                     </Row>
+
                     <div className="d-flex gap-10">
                         <Button
                             className=""
@@ -365,6 +384,7 @@ const ShowModal = ({
                         >
                             <ArrowLeftOutlined /> Go Back
                         </Button>
+
                         <Button
                             block
                             type="primary"

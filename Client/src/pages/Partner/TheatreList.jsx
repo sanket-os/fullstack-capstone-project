@@ -10,7 +10,8 @@ import DeleteTheatreModal from "./DeleteTheatreModal";
 
 const TheatreList = () => {
     const dispatch = useDispatch();
-    const [theatres, setTheatres] = useState(null);
+
+    const [theatres, setTheatres] = useState([]);
     const [selectedTheatre, setSelectedTheatre] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isShowModalOpen, setIsShowModalOpen] = useState(false);
@@ -41,7 +42,7 @@ const TheatreList = () => {
         {
             title: "Status",
             dataIndex: "isActive",
-            render: (status, data) => {
+            render: (_, data) => {
                 if (data.isActive) {
                     return `Approved`;
                 } else {
@@ -52,7 +53,7 @@ const TheatreList = () => {
         {
             title: "Action",
             dataIndex: "action",
-            render: (text, data) => {
+            render: (_, data) => {
                 return (
                     <div className="d-flex align-items-center gap-10">
                         <Button
@@ -64,7 +65,8 @@ const TheatreList = () => {
                         >
                             <EditOutlined />
                         </Button>
-                        <Button 
+
+                        <Button
                             onClick={() => {
                                 setIsDeleteModalOpen(true);
                                 setSelectedTheatre(data);
@@ -73,7 +75,8 @@ const TheatreList = () => {
                         >
                             <DeleteOutlined />
                         </Button>
-                        {data.isActive && 
+
+                        {data.isActive &&
                             <Button
                                 onClick={() => {
                                     setIsShowModalOpen(true);
@@ -92,13 +95,14 @@ const TheatreList = () => {
         try {
             dispatch(showLoading());
             const response = await getAllTheatres();
+
             if (response.success === true) {
                 setTheatres(response.data)
             } else {
-                message.warning(response?.message);
+                message.warning(response?.message || "Failed to fetch theatres");
             }
         } catch (error) {
-            message.error(error);
+            message.error(error?.message || "Something went wrong");
         } finally {
             dispatch(hideLoading());
         }
@@ -110,18 +114,20 @@ const TheatreList = () => {
 
     return (
         <div>
-            <div className="d-flex justify-content-end">
+            <div className="d-flex justify-content-end mb-3">
                 <Button
                     type="primary"
                     onClick={() => {
                         setIsModalOpen(true);
+                        setSelectedTheatre(null);
                         setFormType("add");
-                    }}    
+                    }}
                 >
                     Add Theatre
-                </Button>    
+                </Button>
             </div>
-            <Table dataSource={theatres} columns={columns} />
+
+            <Table rowKey="_id" dataSource={theatres} columns={columns} />
 
             {isModalOpen && (
                 <TheatreForm
@@ -133,6 +139,7 @@ const TheatreList = () => {
                     formType={formType}
                 />
             )}
+
             {isDeleteModalOpen && (
                 <DeleteTheatreModal
                     isDeleteModalOpen={isDeleteModalOpen}
@@ -142,6 +149,7 @@ const TheatreList = () => {
                     fetchTheatreData={getData}
                 />
             )}
+
             {isShowModalOpen && (
                 <ShowModal
                     isShowModalOpen={isShowModalOpen}

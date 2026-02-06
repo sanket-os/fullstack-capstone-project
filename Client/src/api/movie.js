@@ -1,11 +1,18 @@
 import { axiosInstance } from ".";
 
+const handleError = (error) => {
+  return error.response?.data || {
+    success: false,
+    message: error.message,
+  };
+};
+
 export const getAllMovies = async() => {
     try {
         const response = await axiosInstance.get("/movies/getAllMovies");
         return response?.data;
     } catch (error) {
-        return error;
+        return handleError(error);
     }
 };
 
@@ -14,7 +21,7 @@ export const updateMovie = async (payload) => {
         const response = await axiosInstance.patch("/movies/updateMovie", payload);
         return response?.data;
     } catch (error) {
-        return error;
+        return handleError(error);
     }
 };
 
@@ -25,7 +32,7 @@ export const deleteMovie = async (payload) => {
         );
         return response?.data;
     } catch (error) {
-        return error;
+        return handleError(error);
     }
 };
 
@@ -34,7 +41,7 @@ export const addMovie = async (values) => {
         const response = await axiosInstance.post("/movies/addMovie", values);
         return response.data;
     } catch (error) {
-        console.error(error);
+        return handleError(error);
     }
 };
 
@@ -42,7 +49,7 @@ export const getMovieById = async (id) => {
     try {
         const response = await axiosInstance.get(`/movies/movie/${id}`);
         return response.data;
-    } catch (err) {
-        return err.response;
+    } catch (error) {
+       return handleError(error);
     }
 };

@@ -36,6 +36,7 @@ const MyBookings = () => {
         <Row gutter={24}>
           {bookings
             .filter(b => b.show)
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
             .map((booking) => {
             return (
               <Col key={booking._id} xs={{ span: 24 }} lg={{ span: 12 }}>
@@ -51,7 +52,7 @@ const MyBookings = () => {
                     </div>
                     
                     <div className="show-details flex-1">
-                      <h3 className="mt-0 mb-0">{booking.show.movie.title}</h3>
+                      <h3 className="mt-0 mb-0">{booking.show?.movie?.movieName }</h3>
                       <p>
                         Theatre: <b>{booking.show?.theatre?.name}</b>
                       </p>

@@ -30,7 +30,7 @@ import { loadStripe } from "@stripe/stripe-js";
  * This does NOT expose secret keys.
  */
 const stripePromise = loadStripe(
-  "pk_test_51SUR6c1hxLR6U0W4MAayKKnxh4MEOIpIPFin0JI5ZCNUQ4pFjAO1gdAEIPcTpciWQMDTXDcE4qvupwZizEhSSD5t00yQi4EjTt"
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
 );
 
 const BookShow = () => {
@@ -55,13 +55,15 @@ const BookShow = () => {
     try {
       dispatch(showLoading());
       const response = await getShowById({ showId });
+
+
       if (response.success) {
         setShow(response.data);
       } else {
-        message.warning(response.message);
+        message.warning(response?.message || "Failed to load show");
       }
     } catch (error) {
-      message.error(error.message);
+      message.error(error?.message || "Error loading show");
     } finally {
       dispatch(hideLoading());
     }
@@ -69,7 +71,7 @@ const BookShow = () => {
 
   useEffect(() => {
     fetchShow();
-  }, []);
+  }, [showId]); 
 
   /**
    * STEP 1: Create Stripe PaymentIntent
@@ -86,14 +88,14 @@ const BookShow = () => {
 
       const response = await createPaymentIntent(amount);
 
-      if (response.success) {
+      if (response?.success) {
         setClientSecret(response.clientSecret);
         setShowPaymentUI(true);
       } else {
-        message.warning(response.message || "Failed to initialize payment");
+        message.warning(response?.message || "Failed to initialize payment");
       }
     } catch (error) {
-      message.error(error.message);
+      message.error(error?.message || "Payment initialization failed");
     } finally {
       dispatch(hideLoading());
     }
@@ -126,7 +128,7 @@ const BookShow = () => {
         message.warning(response.message || "Booking failed");
       }
     } catch (error) {
-      message.error(error.message);
+      message.error(error?.message || "Booking failed");
     } finally {
       dispatch(hideLoading());
     }

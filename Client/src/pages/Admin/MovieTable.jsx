@@ -15,6 +15,7 @@ const MovieTable = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedMovie, setSelectedMovie] = useState(null);
     const [formType, setFormType] = useState("add");
+
     const dispatch = useDispatch();
 
     const tableHeadings = [
@@ -22,12 +23,12 @@ const MovieTable = () => {
             key: "poster",
             title: "Poster",
             dataIndex: "poster",
-            render: (text, data) => {
+            render: (_, data) => {
                 return (
-                    <img 
-                        src={data?.poster} 
+                    <img
+                        src={data?.poster}
                         alt="Movie Poster"
-                        style={{ objectFit: "cover" }}
+                        style={{ objectFit: "cover", borderRadius: "4px" }}
                         width="75"
                         height="115"
                     />
@@ -48,7 +49,7 @@ const MovieTable = () => {
         {
             title: "Duration",
             dataIndex: "duration",
-            render : (text) => {
+            render: (text) => {
                 return `${text} Min`;
             },
         },
@@ -72,23 +73,26 @@ const MovieTable = () => {
         },
         {
             title: "Actions",
-            render: (text, data) => {
+            render: (_, data) => {
                 return (
                     <div className='d-flex gap-10'>
                         <Button
                             onClick={() => {
-                                setIsModalOpen(true);
-                                data.releaseDate = moment(data.releaseDate).format(
-                                    "YYYY-MM-DD"
-                                );
-                                setSelectedMovie(data);
+                                // IMPORTANT: clone before modifying (no mutation)
+                                const movieForEdit = {
+                                    ...data,
+                                    releaseDate: moment(data.releaseDate).format("YYYY-MM-DD"),
+                                };
+
+                                setSelectedMovie(movieForEdit);
                                 setFormType("edit");
+                                setIsModalOpen(true);
                             }}
                         >
                             <EditOutlined />
                         </Button>
 
-                        <Button 
+                        <Button
                             danger
                             onClick={() => {
                                 setIsDeleteModalOpen(true);
@@ -107,60 +111,62 @@ const MovieTable = () => {
         try {
             dispatch(showLoading());
             const response = await getAllMovies();
+
             if (response.success === true) {
                 setMovies(response?.data);
             } else {
-                message.warning(response?.message);
+                message.warning(response?.message || "Failed to fetch movies");
             }
         } catch (error) {
-            message.error(error);
+            message.error(error?.message || "Something went wrong");
         } finally {
             dispatch(hideLoading());
         }
     };
 
     useEffect(() => {
-        // H.W. -> implement reusable hook/custom hook
         getData();
     }, []);
 
 
 
-  return (
-    <div style={{ borderRadius: "8px", padding: "5px" }}>
-        <div className='d-flex justify-content-end mb-3'>
-            <Button
-                onClick={() => {
-                    setIsModalOpen(!isModalOpen);
-                }}
-            >
-                Add Movie
-            </Button>
+    return (
+        <div style={{ borderRadius: "8px", padding: "5px" }}>
+            <div className='d-flex justify-content-end mb-3'>
+                <Button
+                    onClick={() => {
+                        setFormType("add");
+                        setSelectedMovie(null);
+                        setIsModalOpen(true);
+                    }}
+                >
+                    Add Movie
+                </Button>
+            </div>
+
+            <Table rowKey="_id" columns={tableHeadings} dataSource={movies} />
+            {isModalOpen && (
+                <MovieForm
+                    isModalOpen={isModalOpen}
+                    setIsModalOpen={setIsModalOpen}
+                    FetchMovieData={getData}
+                    formType={formType}
+                    selectedMovie={selectedMovie}
+                    setSelectedMovie={setSelectedMovie}
+                />
+            )}
+
+            {isDeleteModalOpen && (
+                <DeleteMovieModal
+                    isDeleteModalOpen={isDeleteModalOpen}
+                    setIsDeleteModalOpen={setIsDeleteModalOpen}
+                    selectedMovie={selectedMovie}
+                    setSelectedMovie={setSelectedMovie}
+                    FetchMovieData={getData}
+                />
+            )}
         </div>
-
-        <Table columns={tableHeadings} dataSource={movies} />
-        {isModalOpen && (
-            <MovieForm 
-                isModalOpen={isModalOpen} 
-                setIsModalOpen={setIsModalOpen} 
-                FetchMovieData={getData}
-                formType={formType}
-                selectedMovie={selectedMovie} 
-                setSelectedMovie={setSelectedMovie}   
-            />
-        )}
-
-        {isDeleteModalOpen && (
-            <DeleteMovieModal 
-                isDeleteModalOpen={isDeleteModalOpen}
-                setIsDeleteModalOpen={setIsDeleteModalOpen}
-                selectedMovie={selectedMovie}
-                setSelectedMovie={setSelectedMovie}
-                FetchMovieData={getData}
-            />
-        )}
-    </div>
-  );
+    );
 }
 
 export default MovieTable;

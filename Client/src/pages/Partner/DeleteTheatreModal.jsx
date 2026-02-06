@@ -11,19 +11,22 @@ const DeleteTheatreModal = ({
     fetchTheatreData,
 }) => {
     const dispatch = useDispatch();
+
     const handleOk = async () => {
         try {
             dispatch(showLoading());
+
             const theatreId = selectedTheatre._id;
             const response = await deleteTheatre({ theatreId: theatreId });
+
             if (response.success) {
                 message.success(response.message);
                 fetchTheatreData();
             } else {
-                message.warning(response.message);
+                message.warning(response?.message || "Delete failed");
             }
         } catch (error) {
-            message.error(error);
+            message.error(error?.message || "Failed to delete theatre");
         } finally {
             dispatch(hideLoading());
             setIsDeleteModalOpen(false);

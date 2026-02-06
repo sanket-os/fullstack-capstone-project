@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { LoginUser } from '../api/user';
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from '../redux/loaderSlice';
+import { useEffect } from "react";
 
 const Login = () => {
   const [messageApi, contextHolder] = message.useMessage(); // Add this
@@ -11,6 +12,12 @@ const Login = () => {
   // otherwise the fast rendering will skip it
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+  if (localStorage.getItem("tokenForBMS")) {
+    navigate("/", { replace: true });
+  }
+}, []);
   
   const onFinish = async (values) => {
     try {
@@ -27,7 +34,7 @@ const Login = () => {
         messageApi.warning(response?.message);
       }
     } catch (error) {
-      messageApi.error(error);
+      messageApi.error(error?.message || "Login failed");
     } finally {
       dispatch(hideLoading());
     }

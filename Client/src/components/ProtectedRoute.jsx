@@ -46,7 +46,7 @@ const ProtectedRoute = ({ children }) => {
         } else {
             navigate("/login");
         }
-    }, []);
+    }, [navigate]);
 
     const navItems = [
         {
@@ -102,6 +102,7 @@ const ProtectedRoute = ({ children }) => {
                             to="/login"
                             onClick={() => {
                                 localStorage.removeItem("tokenForBMS");
+                                dispatch(setUser(null));
                             }}
                         >
                             Logout

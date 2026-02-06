@@ -1,9 +1,10 @@
 import './App.css'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useSelector } from 'react-redux';
+
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import { useSelector } from 'react-redux';
 import Partner from './pages/Partner/Partner';
 import Admin from './pages/Admin/Admin';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -30,6 +31,7 @@ function App() {
       }
       <BrowserRouter>
         <Routes>
+          {/* Protected */}
           <Route
             path="/" element={
               <ProtectedRoute>
@@ -81,6 +83,7 @@ function App() {
             }
           />
 
+          {/* Public */}
           <Route path="/login" element={<Login />} />
           
           <Route path="/register" element={<Register />} />

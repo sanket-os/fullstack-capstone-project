@@ -1,8 +1,9 @@
-import { Col, Row, Modal, Form, Input, Select, Button, message } from 'antd';
+import { Col, Row, Modal, Form, Input, Select, Button, message } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import { useDispatch } from 'react-redux';
-import { hideLoading, showLoading } from '../../redux/loaderSlice';
-import { addMovie, updateMovie } from '../../api/movie';
+import { useDispatch } from "react-redux";
+import { hideLoading, showLoading } from "../../redux/loaderSlice";
+import { addMovie, updateMovie } from "../../api/movie";
+import { useEffect } from "react";
 
 const MovieForm = ({
   isModalOpen,
@@ -10,12 +11,13 @@ const MovieForm = ({
   FetchMovieData,
   formType,
   selectedMovie,
-  setSelectedMovie
+  setSelectedMovie,
 }) => {
-
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const handleCancel = () => {
+    form.resetFields();
+    setSelectedMovie(null);
     setIsModalOpen(false);
   };
 
@@ -30,7 +32,10 @@ const MovieForm = ({
           movieId: selectedMovie._id,
         });
       } else {
-        response = await addMovie(values);
+        response = await addMovie({
+          ...values,
+          releaseDate: new Date(values.releaseDate),
+        });
       }
 
       if (response.success) {
@@ -39,14 +44,22 @@ const MovieForm = ({
         setIsModalOpen(false);
       }
     } catch (error) {
-      message.error(error);
+      message.error(error?.message || "Something went wrong");
     } finally {
       dispatch(hideLoading());
       setSelectedMovie(null);
     }
   };
 
+  const [form] = Form.useForm();
 
+  useEffect(() => {
+    if (formType === "edit" && selectedMovie) {
+      form.setFieldsValue(selectedMovie);
+    } else {
+      form.resetFields();
+    }
+  }, [selectedMovie, formType]);
 
   return (
     <Modal
@@ -57,7 +70,7 @@ const MovieForm = ({
       width={800}
       footer={null}
     >
-      <Form layout="vertical" initialValues={selectedMovie} onFinish={OnFinish}>
+      <Form form={form} layout="vertical" onFinish={OnFinish}>
         <Row gutter={{ xs: 6, sm: 10, md: 12, lg: 16 }}>
           <Col span={24}>
             <Form.Item
@@ -85,9 +98,11 @@ const MovieForm = ({
                 <Form.Item
                   label="Movie Duration (in min)"
                   name="duration"
-                  rules={[{ required: true, message: "Movie duration is required" }]}
+                  rules={[
+                    { required: true, message: "Movie duration is required" },
+                  ]}
                 >
-                  <Input type='number' placeholder='Enter the movie duration' />
+                  <Input type="number" placeholder="Enter the movie duration" />
                 </Form.Item>
               </Col>
 
@@ -95,7 +110,9 @@ const MovieForm = ({
                 <Form.Item
                   label="Select Movie Language"
                   name="language"
-                  rules={[{ required: true, message: "Movie language is required!" }]}
+                  rules={[
+                    { required: true, message: "Movie language is required!" },
+                  ]}
                 >
                   <Select
                     placeholder="Select Language"
@@ -106,7 +123,8 @@ const MovieForm = ({
                       { value: "Telugu", label: "Telugu" },
                       { value: "Bengali", label: "Bengali" },
                       { value: "German", label: "German" },
-                    ]} />
+                    ]}
+                  />
                 </Form.Item>
               </Col>
 
@@ -114,7 +132,12 @@ const MovieForm = ({
                 <Form.Item
                   label="Release Date"
                   name="releaseDate"
-                  rules={[{ required: true, message: "Movie Release Date is required!" }]}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Movie Release Date is required!",
+                    },
+                  ]}
                 >
                   <Input type="date" />
                 </Form.Item>
@@ -126,7 +149,7 @@ const MovieForm = ({
             <Form.Item
               label="Select Movie Genre"
               name="genre"
-              rules={[ { required: true, message: "Movie genre is required!" } ]}
+              rules={[{ required: true, message: "Movie genre is required!" }]}
             >
               <Select
                 placeholder="Select Movie"
@@ -149,7 +172,7 @@ const MovieForm = ({
             <Form.Item
               label="Poster URL"
               name="poster"
-              rules={[ { required: true, message: "Movie Poster is required!" } ]}
+              rules={[{ required: true, message: "Movie Poster is required!" }]}
             >
               <Input placeholder="Enter the poster URL" />
             </Form.Item>
@@ -166,15 +189,13 @@ const MovieForm = ({
             Submit the Data
           </Button>
 
-          <Button className='mt-3' block onClick={handleCancel}>
+          <Button className="mt-3" block onClick={handleCancel}>
             Cancel
           </Button>
         </Form.Item>
       </Form>
     </Modal>
   );
-
 };
-
 
 export default MovieForm;

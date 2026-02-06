@@ -1,5 +1,7 @@
 const errorHandler = (err, req, res, next) => {
-    res.status(res.statusCode || 404).json({
+    console.error(err); // optional
+    res.status(res.statusCode || 500).json({   // >>>>>>>>>>>> GPT RES => 500 not 404 
+        success: false,
         message: err.message,
     });
 };

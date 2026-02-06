@@ -1,3 +1,5 @@
+
+
 const express = require("express");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
@@ -24,7 +26,22 @@ const app = express();
 // const clientBuildPath = path.join(__dirname, "../Client/dist");
 // app.use(express.static(clientBuildPath));
 
+/**
+ * ----------------------------------------------------
+ * Environment Validation (Fail Fast)
+ * ----------------------------------------------------
+ */
 
+if (!process.env.PORT || !process.env.SECRET_KEY || !process.env.MONGO_URI) {
+  console.error("❌ Missing required environment variables");
+  process.exit(1);
+}
+
+/**
+ * ----------------------------------------------------
+ * Serve Frontend (React build)
+ * ----------------------------------------------------
+ */
 app.use(express.static(path.join(__dirname, "../Client/dist")));
 
 // we have included the distribution folder by npm run build command on the frontend side
@@ -33,9 +50,10 @@ app.use(express.static(path.join(__dirname, "../Client/dist")));
 // we do static rendering and client side rendering here 
 
 // These files are static and can be served by Nginx, Render, Netlify, S3, etc.  
+// If the browser asks for a file, check the dist folder and send it.
 
 
-connectDB();
+// connectDB();
 
 
 /**
@@ -92,10 +110,23 @@ app.use(
     },
   })
 );
+
+
+/**
+ * ----------------------------------------------------
+ * CORS Configuration (Restricted)
+ * ----------------------------------------------------
+ */
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  })
+);
+
 /**
  * Body parser
  */
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -125,7 +156,7 @@ app.use((req, res, next) => {
 });
 
 /**
- * Rate limiter
+ * Rate limiter (API only)
  * -------------
  * Limits repeated requests from same IP
  * Protects login & booking endpoints from abuse
@@ -144,7 +175,7 @@ const apiLimiter = rateLimit({
 /**
  * Apply rate limiting to API routes only
  */
-app.use("/bms", apiLimiter);
+app.use("/bms/v1", apiLimiter);
 
 /**
  * Public routes (no JWT required)
@@ -178,23 +209,57 @@ app.use("/bms/v1/theatres", validateJWTToken, theatreRoute);
 app.use("/bms/v1/shows", validateJWTToken, showRoute);
 app.use("/bms/v1/bookings", validateJWTToken, bookingRoute);
 
+/**
+ * ----------------------------------------------------
+ * Centralized Error Handler
+ * ----------------------------------------------------
+ */
 app.use(errorHandler); // Centralized error handler
 
-// SPA fallback
+/**
+ * ----------------------------------------------------
+ * SPA Fallback (React Router)
+ * ----------------------------------------------------
+ */
 app.get(/.*/, (req, res) => {
   res.sendFile(
     path.join(__dirname, "../Client/dist/index.html")
   );
 });
+// “If the request is not a file and not an API, send index.html anyway.” 
+// React Router decides what UI to show
+// This line is needed because React Router runs in the browser, not on the server.
+
+// express.static serves the built frontend assets, and the (/.*/) regex fallback ensures
+//  all non-API routes return index.html so React Router can handle client-side routing.
 
 // The server will first check if the dot environment variable is set. 
 // If it is, the server will use that value.
 // it is helpful to configure it in different environments like development, staging, production 
 
-// Start server
-app.listen(process.env.PORT, () => {
-  console.log(`Server is running on ${process.env.PORT}`);
-});
+/**
+ * ----------------------------------------------------
+ * Start Server ONLY After DB Connection
+ * ----------------------------------------------------
+ */
+
+connectDB()
+  .then(() => {
+    const server = app.listen(process.env.PORT, () => {
+      console.log(`✅ Server running on port ${process.env.PORT}`);
+    });
+
+    // Graceful shutdown
+    process.on("SIGTERM", () => {
+      console.log("🛑 SIGTERM received. Shutting down gracefully...");
+      server.close(() => process.exit(0));
+    });
+  })
+  .catch((err) => {
+    console.error("❌ Database connection failed", err);
+    process.exit(1);
+  });
+
 
 
 

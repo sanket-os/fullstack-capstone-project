@@ -6,8 +6,8 @@ import { deleteMovie } from "../../api/movie";
 const DeleteMovieModal = ({
     isDeleteModalOpen,
     setIsDeleteModalOpen,
-    selectedMovie, 
-    setSelectedMovie, 
+    selectedMovie,
+    setSelectedMovie,
     FetchMovieData
 }) => {
     const dispatch = useDispatch();
@@ -24,7 +24,7 @@ const DeleteMovieModal = ({
                 message.warning(response.message);
             }
         } catch (error) {
-            message.error(error);
+            message.error(error?.message || "Failed to delete movie");
         } finally {
             setIsDeleteModalOpen(false);
             setSelectedMovie(null);
@@ -43,9 +43,11 @@ const DeleteMovieModal = ({
             open={isDeleteModalOpen}
             onOk={handleOk}
             onCancel={handleCancel}
+            okText="Delete"
+            okButtonProps={{ danger: true }}
         >
             <p className="pt-3 fs-18">
-                Are you sure you want to delete this movie {selectedMovie.movieName}?
+                Are you sure you want to delete this movie {selectedMovie?.movieName}?
             </p>
 
             <p className="pb-3 fs-18">

@@ -18,7 +18,7 @@ const Admin = () => {
   ];
 
   return (
-    <div style={{ margin: "10px" }}>
+    <div  className="px-3 py-3">
       <h1>Admin Dashboard</h1>
       <Tabs 
         defaultActiveKey='movies' 

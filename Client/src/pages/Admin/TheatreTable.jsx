@@ -14,7 +14,7 @@ const TheatreTable = () => {
       dispatch(showLoading());
       const response = await getAllTheatresForAdmin();
 
-      if (response.success) {
+      if (response?.success) {
         const allTheatres = response.data;
         setTheatres(
           allTheatres.map(function (item) {
@@ -22,8 +22,8 @@ const TheatreTable = () => {
           })
         );
       }
-    } catch (err) {
-      message.error(err);
+    } catch (error) {
+      message.error(error?.message || "Something went wrong");
     } finally {
       dispatch(hideLoading());
     }
@@ -32,6 +32,7 @@ const TheatreTable = () => {
   const handleStatusChange = async (theatre) => {
     try {
       dispatch(showLoading());
+
       const values = {
         ...theatre,
         theatreId: theatre._id,
@@ -39,14 +40,20 @@ const TheatreTable = () => {
       };
 
       const response = await updateTheatre(values);
-      if (response.success) {
-        message.success(response.message);
+
+
+      if (response?.success) {
+        message.success(
+          theatre.isActive
+            ? "Theatre blocked successfully"
+            : "Theatre approved successfully"
+        );
         getData();
       } else {
-        message.warning(response.message);
+        message.warning(response?.message || "Status update failed");
       }
     } catch (error) {
-      message.error(error);
+      message.error(error?.message || "Something went wrong");    
     } finally {
       dispatch(hideLoading());
     }
@@ -66,7 +73,7 @@ const TheatreTable = () => {
     {
       title: "Owner",
       dataIndex: "owner",
-      render: (text, data) => {
+      render: (_, data) => {
         return data.owner && data.owner.name;
       },
     },
@@ -83,7 +90,7 @@ const TheatreTable = () => {
     {
       title: "Status",
       dataIndex: "status",
-      render: (status, data) => {
+      render: (_, data) => {
         if (data.isActive) {
           return "Approved";
         } else {
@@ -94,7 +101,7 @@ const TheatreTable = () => {
     {
       title: "Action",
       dataIndex: "action",
-      render: (text, data) => {
+      render: (_, data) => {
         return (
           <div className="d-flex align-items-center gap-10">
             {data.isActive ? (
@@ -118,7 +125,7 @@ const TheatreTable = () => {
 
   return (
     <div>
-      <Table dataSource={theatres} columns={columns} />
+      <Table rowKey="_id" dataSource={theatres} columns={columns} />
     </div>
   );
 };

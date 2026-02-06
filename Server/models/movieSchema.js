@@ -9,28 +9,39 @@ const movieSchema = new mongoose.Schema({
     description: {
         type: String,
         required: true,
-    }, 
+    },
     duration: {
         type: Number,
         required: true,
     },
-    genre: {
-        type: String,
-        required: true,
-    },
-    language: {
-        type: String,
-        required: true,
-    },
+    // NOTE: Currently supports single genre/language.
+    // Can be extended to arrays in future.
+    genre: [
+        {
+            type: String,
+            required: true,
+        },
+    ],
+    language: [
+        {
+            type: String,
+            required: true,
+        },
+    ],
     releaseDate: {
         type: Date,
         required: true,
+        index: true,
     },
     poster: {
         type: String,
         required: true,
     },
 });
+
+// Helpful indexes for filtering & sorting
+movieSchema.index({ language: 1 });
+movieSchema.index({ genre: 1 });
 
 const Movies = mongoose.model("movies", movieSchema);
 

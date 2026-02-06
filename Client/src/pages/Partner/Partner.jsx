@@ -1,7 +1,7 @@
 import TheatreList from "./TheatreList";
 import { Tabs } from 'antd';
 
-const Partner =() => {
+const Partner = () => {
 
   const items = [
   {
@@ -12,8 +12,8 @@ const Partner =() => {
 ];
 
   return (
-    <div>
-      <h1>Partner Page</h1>
+    <div style={{ margin: "10px" }}>
+      <h1>Partner Dashboard</h1>
       <Tabs items={items} />
     </div>
   );

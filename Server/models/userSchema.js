@@ -10,11 +10,15 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
+        lowercase: true,
+        trim: true,
+        match: [/^\S+@\S+\.\S+$/, "Please use a valid email address"],
     },
 
     password: {
         type: String,
         required: true,
+        select: false, // prevent accidental exposure
     },
 
     // admin - BookMyShow onboarding of theatre and movies
@@ -29,9 +33,11 @@ const userSchema = new mongoose.Schema({
     },
     otp: {
         type: String,
+        select: false, // sensitive
     },
     otpExpiry: {
         type: Date,
+        select: false,
     },
 },
     { timestamps: true }

@@ -1,6 +1,7 @@
 import { Form, Input, Button, message, Radio } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { RegisterUser } from '../api/user';
+import { useEffect } from "react";
 
 const Register = () => {
   const [messageApi, contextHolder] = message.useMessage();
@@ -9,6 +10,12 @@ const Register = () => {
   // contextHolder: a React element you must include in your JSX (Ant Design needs it to render messages properly).
   
   const navigate = useNavigate();
+
+  useEffect(() => {
+  if (localStorage.getItem("tokenForBMS")) {
+    navigate("/", { replace: true });
+  }
+}, []);
 
   const onFinish = async (values) => {
     try {
@@ -23,7 +30,7 @@ const Register = () => {
         messageApi.warning(response?.message);
       }
     } catch (error) {
-      messageApi.error(error);
+      messageApi.error(error?.message || "Registration failed");
     }
   };
 
@@ -61,7 +68,7 @@ const Register = () => {
               htmlFor="role"
               name="role"
               className="d-block text-center"
-              initialValue={false}
+              initialValue="user"
               rules={[{ required: true, message: "Please select an option!" }]}
             >
               <div className='d-flex justify-content-start'>

@@ -9,6 +9,7 @@ import axios from "axios";
 
 export const axiosInstance = axios.create({
     baseURL: "/bms/v1",
+    withCredentials: true, // REQUIRED FOR COOKIES
     headers: {
         "Content-Type" : "application/json",
     },
@@ -19,21 +20,6 @@ export const axiosInstance = axios.create({
 // this obj is then passed through the interceptors which can inspect, add or modify 
 // things before req goes out
 
-// interceptor can also alter the response before your app receives it  
-
-axiosInstance.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem("tokenForBMS");
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
 
 // config.url, config.baseURL, config.method, config.headers, config.data, 
 // config.params, config.timeout 

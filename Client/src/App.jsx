@@ -13,6 +13,7 @@ import BookShow from "./pages/BookShow";
 import MyBookings from "./pages/MyBookings";
 import Forget from "./pages/Forget";
 import Reset from "./pages/Reset";
+// import TmdbMovie from './pages/TmdbMovie';
 
 function App() {
 
@@ -91,6 +92,9 @@ function App() {
           <Route path="/forget" element={<Forget />} />
           
           <Route path="/reset" element={<Reset />} />
+
+          {/* <Route path="/tmdb/movie/:id" element={<TmdbMovie />} /> */}
+
         </Routes>
       </BrowserRouter>
     </>

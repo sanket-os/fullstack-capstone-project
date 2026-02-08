@@ -31,8 +31,6 @@ const createPaymentIntent = async (req, res, next) => {
       },
     });
 
-    const transactionId = paymentIntent.id;
-
     res.send({
       success: true,
       clientSecret: paymentIntent.client_secret,

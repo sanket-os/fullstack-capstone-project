@@ -58,7 +58,7 @@ const loginUser = async (req, res, next) => {
   // console.log("LOGIN ATTEMPT BODY:", req.body);
   try {
     const user = await userModel.findOne({ email: req?.body?.email })
-     .select("+password");;
+      .select("+password");;
 
     if (!user) {
       return res.send({
@@ -67,7 +67,6 @@ const loginUser = async (req, res, next) => {
       });
     }
 
-    // if (req?.body?.password !== user?.password) {
     const validatePassword = await bcrypt.compare(
       req?.body?.password,
       user?.password
@@ -94,11 +93,17 @@ const loginUser = async (req, res, next) => {
     // Options: { expiresIn: "1d" }
     // expires after 1 day
 
-    res.send({
-      success: true,
-      message: "Login successful",
-      data: token,
-    });
+    res
+      .cookie("bms_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 24 * 60 * 60 * 1000, // 1 day
+      })
+      .send({
+        success: true,
+        message: "You've successfully Logged In",
+      });
 
   } catch (error) {
     res.status(400);
@@ -113,6 +118,28 @@ const loginUser = async (req, res, next) => {
 // You can define _email in your schema, but it is not recommended.
 // Only _id is meant to start with _, and using underscore prefixes for normal fields causes confusion and breaks conventions.
 // MongoDB stores the primary key as _id, not id.
+
+/**
+ * ----------------------------------------------------
+ * Logout User
+ * ----------------------------------------------------
+ */
+const logoutUser = async (req, res, next) => {
+  try {
+    res.clearCookie("bms_token", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 /**
@@ -162,9 +189,8 @@ const forgetPassword = async (req, res, next) => {
         status: false,
         message: "User not found",
       });
-    } 
-    else if (user?.otp != undefined && user.otp < user?.otpExpiry) 
-    {
+    }
+    else if (user?.otp != undefined && user.otp < user?.otpExpiry) {
       return res.json({
         success: false,
         message: "OTP already sent. Please check your email",
@@ -254,6 +280,7 @@ const resetPassword = async (req, res, next) => {
 module.exports = {
   registerUser,
   loginUser,
+  logoutUser,
   currentUser,
   forgetPassword,
   resetPassword,

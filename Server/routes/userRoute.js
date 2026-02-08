@@ -1,6 +1,7 @@
 const { 
     registerUser, 
     loginUser,
+    logoutUser,
     currentUser,
     forgetPassword,
     resetPassword,
@@ -14,5 +15,7 @@ router.post("/login", loginUser);
 router.get("/getCurrentUser", validateJWTToken, currentUser);
 router.post("/forgetPassword", forgetPassword);
 router.post("/resetPassword", resetPassword);
+
+router.post("/logout", logoutUser);
 
 module.exports = router;

@@ -4,6 +4,7 @@ import { LoginUser } from '../api/user';
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from '../redux/loaderSlice';
 import { useEffect } from "react";
+import { GetCurrentUser } from "../api/user";
 
 const Login = () => {
   const [messageApi, contextHolder] = message.useMessage(); // Add this
@@ -14,21 +15,25 @@ const Login = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-  if (localStorage.getItem("tokenForBMS")) {
-    navigate("/", { replace: true });
-  }
+  (async () => {
+    const res = await GetCurrentUser();
+    if (res.success) {
+      navigate("/", { replace: true });
+    }
+  })();
 }, []);
+
   
   const onFinish = async (values) => {
     try {
       dispatch(showLoading());
       const response = await LoginUser(values);
+      
       if (response?.success) {
         messageApi.success(response?.message);
-        localStorage.setItem("tokenForBMS", response?.data);
         // Add delay before navigation
         setTimeout(() => {
-          navigate("/");
+          navigate("/", { replace: true });
         }, 1500);
       } else {
         messageApi.warning(response?.message);

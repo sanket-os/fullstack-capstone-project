@@ -8,37 +8,21 @@ const jwt = require("jsonwebtoken");
  * user information to req.body
  */
 const validateJWTToken = (req, res, next) => {
-    try {
-        const authHeader = req.headers.authorization;
+    try { 
+        const token = req.cookies.bms_token;
 
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        if (!token) {
             return res.status(401).json({
                 success: false,
-                message: "Authorization token missing or malformed",
+                message: "Not authenticated",
             });
         }
 
-        const token = authHeader.split(" ")[1];
         const decode = jwt.verify(token, process.env.SECRET_KEY);
         // The token’s signature is valid (i.e., created using your SECRET_KEY).
         // The token hasn’t expired.
 
-        req.body = { email: decode?.email, userId: decode?.userId, ...req.body };
-
-        // >>>>>>>>>>>>>>>> GPT RES
-
-        /**
-        * IMPORTANT:
-        * JWT-derived fields MUST override client-supplied fields
-        * to maintain trust boundary.
-        */
-
-        // req.body = {
-        //     ...req.body,              // client input (untrusted)
-        //     userId: decoded.userId,   // server-trusted
-        //     email: decoded.email,
-        //     role: decoded.role,
-        // };
+        req.body = { email: decode?.email, userId: decode?.userId, role: decode?.role, ...req.body };
 
         next();
     } catch (error) {

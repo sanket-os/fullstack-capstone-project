@@ -12,12 +12,18 @@ import { GetCurrentUser } from "../api/user";
 import { useSelector, useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../redux/loaderSlice";
 import { setUser } from "../redux/userSlice";
+import { axiosInstance } from "../api/index";
 
 const ProtectedRoute = ({ children }) => {
 
     const { user } = useSelector((state) => state.user);
     const navigate = useNavigate();
     const dispatch = useDispatch();
+
+     useEffect(() => {
+        getValidUser();
+    }, []);
+
 
     const getValidUser = async () => {
         try {
@@ -30,23 +36,19 @@ const ProtectedRoute = ({ children }) => {
                 dispatch(setUser(response?.data));
             } else {
                 message.warning(response?.message || 'Failed to fetch user data');
+                navigate("/login", { replace: true });
             }
         } catch (error) {
             console.error('Error fetching user:', error); // Debug log
+
             message.error(error.message || 'Something went wrong');
+            navigate("/login", { replace: true });
         } finally {
             dispatch(hideLoading());
         }
     };
 
-    useEffect(() => {
-        const token = localStorage.getItem("tokenForBMS");
-        if (token) {
-            getValidUser();
-        } else {
-            navigate("/login");
-        }
-    }, [navigate]);
+   
 
     const navItems = [
         {
@@ -100,8 +102,9 @@ const ProtectedRoute = ({ children }) => {
                     label: (
                         <Link
                             to="/login"
-                            onClick={() => {
-                                localStorage.removeItem("tokenForBMS");
+                            onClick={async () => {
+                                await axiosInstance.post("/users/logout");
+                                navigate("/login", { replace: true });
                                 dispatch(setUser(null));
                             }}
                         >

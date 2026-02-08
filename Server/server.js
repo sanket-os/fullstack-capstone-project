@@ -1,5 +1,3 @@
-
-
 const express = require("express");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
@@ -19,12 +17,10 @@ const errorHandler = require("./middlewares/errorHandler");
 const { validateJWTToken } = require("./middlewares/authorizationMiddleware");
 const cors = require("cors");
 const path = require("path");
+const cookieParser = require("cookie-parser");
 
 
 const app = express();
-
-// const clientBuildPath = path.join(__dirname, "../Client/dist");
-// app.use(express.static(clientBuildPath));
 
 /**
  * ----------------------------------------------------
@@ -51,9 +47,6 @@ app.use(express.static(path.join(__dirname, "../Client/dist")));
 
 // These files are static and can be served by Nginx, Render, Netlify, S3, etc.  
 // If the browser asks for a file, check the dist folder and send it.
-
-
-// connectDB();
 
 
 /**
@@ -107,6 +100,7 @@ app.use(
       ],
       fontSrc: ["'self'", "data:"],
       objectSrc: ["'none'"],
+      upgradeInsecureRequests: [], // Automatically upgrades HTTP requests to HTTPS
     },
   })
 );
@@ -120,6 +114,7 @@ app.use(
 app.use(
   cors({
     origin: process.env.CLIENT_URL,
+    // origin: true,
     credentials: true,
   })
 );
@@ -128,6 +123,8 @@ app.use(
  * Body parser
  */
 app.use(express.json());
+app.use(cookieParser());
+
 app.use(express.urlencoded({ extended: true }));
 
 /**
@@ -154,6 +151,7 @@ app.use((req, res, next) => {
   }
   next();
 });
+
 
 /**
  * Rate limiter (API only)

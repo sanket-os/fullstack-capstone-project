@@ -2,6 +2,7 @@ import { Form, Input, Button, message, Radio } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { RegisterUser } from '../api/user';
 import { useEffect } from "react";
+import { GetCurrentUser } from "../api/user";
 
 const Register = () => {
   const [messageApi, contextHolder] = message.useMessage();
@@ -12,10 +13,14 @@ const Register = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-  if (localStorage.getItem("tokenForBMS")) {
-    navigate("/", { replace: true });
-  }
+  (async () => {
+    const res = await GetCurrentUser();
+    if (res.success) {
+      navigate("/", { replace: true });
+    }
+  })();
 }, []);
+
 
   const onFinish = async (values) => {
     try {

@@ -17,6 +17,7 @@ const DeleteMovieModal = ({
             dispatch(showLoading());
             const movieId = selectedMovie._id;
             const response = await deleteMovie({ movieId });
+            
             if (response.success) {
                 message.success(response.message);
                 FetchMovieData();

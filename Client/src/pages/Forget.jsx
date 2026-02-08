@@ -1,4 +1,3 @@
-import React, { useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button, Form, Input, message } from "antd";
 import { ForgetPassword } from "../api/user";
@@ -9,16 +8,11 @@ const Forget = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    if (localStorage.getItem("tokenForBMS")) {
-      navigate("/");
-    }
-  }, [navigate]);
-
   const onFinish = async (values) => {
     try {
       dispatch(showLoading());
       const response = await ForgetPassword(values);
+      
       if (response.success) {
         message.success("OTP sent to your email");
         // alert("OTP sent to your email");

@@ -1,4 +1,3 @@
-import React, { useEffect } from "react";
 import { Button, Form, Input } from "antd";
 import { useNavigate } from "react-router-dom";
 import { message } from "antd";
@@ -28,12 +27,7 @@ function Reset() {
       dispatch(hideLoading());
     }
   };
-
-  useEffect(() => {
-    if (localStorage.getItem("tokenForBMS")) {
-      navigate("/");
-    }
-  }, [navigate]);
+  
 
   return (
     <>

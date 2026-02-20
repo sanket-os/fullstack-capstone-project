@@ -3,6 +3,7 @@ import { Button, Form, Input, message } from "antd";
 import { ForgetPassword } from "../api/user";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../redux/loaderSlice";
+import { mapErrorToMessage } from "../utils/errorMapper";
 
 const Forget = () => {
   const navigate = useNavigate();
@@ -11,22 +12,26 @@ const Forget = () => {
   const onFinish = async (values) => {
     try {
       dispatch(showLoading());
-      const response = await ForgetPassword(values);
+     
+      await ForgetPassword(values);
       
-      if (response.success) {
-        message.success("OTP sent to your email");
+      message.success("OTP sent to your email");
         // alert("OTP sent to your email");
-        navigate("/reset");
-      } else {
-        if (response.message === "Please use otp sent on mail") {
-          alert("Please use existing otp");
-          navigate("/reset");
-        } else {
-          message.warning(response.message);
-        }
-      }
+      navigate("/reset");
+       
+      
     } catch (error) {
-      message.error(error.message);
+     /**
+       * Special handling example:
+       * If backend says OTP already exists → still redirect user
+       */
+      if (error.code === "OTP_ALREADY_SENT") {
+        message.warning(mapErrorToMessage(error));
+        navigate("/reset");
+        return;
+      }
+
+      message.error(mapErrorToMessage(error));
     } finally {
       dispatch(hideLoading());
     }
@@ -39,6 +44,8 @@ const Forget = () => {
           <section className="left-section">
             <h1>Forget Password</h1>
           </section>
+
+
           <section className="right-section">
             <Form layout="vertical" onFinish={onFinish}>
               <Form.Item
@@ -55,6 +62,7 @@ const Forget = () => {
                 ></Input>
               </Form.Item>
 
+
               <Form.Item className="d-block">
                 <Button
                   type="primary"
@@ -66,6 +74,8 @@ const Forget = () => {
                 </Button>
               </Form.Item>
             </Form>
+
+
             <div>
               <p>
                 Existing User? <Link to="/login">Login Here</Link>

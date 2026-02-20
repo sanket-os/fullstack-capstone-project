@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, Row, Col, Button, message } from "antd";
 import moment from "moment";
@@ -11,6 +11,7 @@ import {
 } from "../api/booking";
 
 import { showLoading, hideLoading } from "../redux/loaderSlice";
+import { mapErrorToMessage } from "../utils/errorMapper";
 
 /**
  * Stripe imports
@@ -37,7 +38,7 @@ const BookShow = () => {
   const { id: showId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.user);
+  // const { user } = useSelector((state) => state.user);
 
   const [show, setShow] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -56,14 +57,10 @@ const BookShow = () => {
       dispatch(showLoading());
       const response = await getShowById({ showId });
 
+      setShow(response.data);
 
-      if (response.success) {
-        setShow(response.data);
-      } else {
-        message.warning(response?.message || "Failed to load show");
-      }
     } catch (error) {
-      message.error(error?.message || "Error loading show");
+      message.error(mapErrorToMessage(error));
     } finally {
       dispatch(hideLoading());
     }
@@ -71,7 +68,7 @@ const BookShow = () => {
 
   useEffect(() => {
     fetchShow();
-  }, [showId]); 
+  }, [showId]);
 
   /**
    * STEP 1: Create Stripe PaymentIntent
@@ -84,18 +81,19 @@ const BookShow = () => {
       dispatch(showLoading());
 
       // Stripe requires amount in smallest currency unit (paise)
-      const amount = selectedSeats.length * show.ticketPrice * 100;
+      // const amount = selectedSeats.length * show.ticketPrice * 100;
+      // const response = await createPaymentIntent(amount);
 
-      const response = await createPaymentIntent(amount);
+      const response = await createPaymentIntent({
+        showId,
+        seats: selectedSeats,
+      });
 
-      if (response?.success) {
-        setClientSecret(response.clientSecret);
-        setShowPaymentUI(true);
-      } else {
-        message.warning(response?.message || "Failed to initialize payment");
-      }
+      setClientSecret(response.clientSecret);
+      setShowPaymentUI(true);
+
     } catch (error) {
-      message.error(error?.message || "Payment initialization failed");
+      message.error(mapErrorToMessage(error));
     } finally {
       dispatch(hideLoading());
     }
@@ -114,21 +112,18 @@ const BookShow = () => {
     try {
       dispatch(showLoading());
 
-      const response = await makePaymentAndBookShow({
+      await makePaymentAndBookShow({
         show: showId,
         seats: selectedSeats,
         paymentIntentId,
-        user: user._id,
+        // user: user._id,
       });
 
-      if (response.success) {
-        message.success("Show booked successfully!");
-        navigate("/mybookings");
-      } else {
-        message.warning(response.message || "Booking failed");
-      }
+      message.success("Show booked successfully!");
+      navigate("/mybookings");
+
     } catch (error) {
-      message.error(error?.message || "Booking failed");
+      message.error(mapErrorToMessage(error));
     } finally {
       dispatch(hideLoading());
     }
@@ -168,7 +163,7 @@ const BookShow = () => {
        */
       const { error: submitError } = await elements.submit();
       if (submitError) {
-        message.error(submitError.message);
+        message.error(mapErrorToMessage(submitError));
         return;
       }
 
@@ -182,7 +177,7 @@ const BookShow = () => {
       });
 
       if (error) {
-        message.error(error.message);
+        message.error(mapErrorToMessage(error));
         return;
       }
 
@@ -251,9 +246,11 @@ const BookShow = () => {
                 const seatNumber = row * columns + column + 1;
                 if (seatNumber > totalSeats) return null;
 
+
                 let seatClass = "seat-btn";
                 if (selectedSeats.includes(seatNumber)) seatClass += " selected";
                 if (show.bookedSeats.includes(seatNumber)) seatClass += " booked";
+
 
                 return (
                   <li key={seatNumber}>
@@ -261,6 +258,7 @@ const BookShow = () => {
                       className={seatClass}
                       onClick={() => {
                         if (seatClass.includes("booked")) return;
+
 
                         setSelectedSeats((prev) =>
                           prev.includes(seatNumber)
@@ -302,8 +300,10 @@ const BookShow = () => {
                     {moment(show.date).format("MMM Do YYYY")} at{" "}
                     {moment(show.time, "HH:mm").format("hh:mm A")}
                   </h3>
+
                   <h3>Ticket Price: ₹{show.ticketPrice}</h3>
                   <h3>
+                  
                     Total Seats: {show.totalSeats}
                     <span> &nbsp;|&nbsp; Available Seats: </span>
                     {/* &nbsp; stands for:

@@ -3,66 +3,31 @@ import { axiosInstance } from ".";
 // You’re defining an async function named RegisterUser that sends registration data to your backend API.
 
 export const RegisterUser = async (values) => {
-  try {
-    const response = await axiosInstance.post("/users/register", values);
-    return response.data;
-    // extracts only the useful payload (the data the backend sends), not the full Axios response object
-  } catch (error) {
-    return error.response?.data || {
-      success: false,
-      message: error.message,
-    };
-  }
-  // this is best practice to read an actual error from the backend
+  const response = await axiosInstance.post("/users/register", values);
+  return response.data;
+  // extracts only the useful payload (the data the backend sends), not the full Axios response object
 };
+
 
 // The values argument contains form data (like name, email, password, etc.)
 export const LoginUser = async (values) => {
-  try {
-    const response = await axiosInstance.post("/users/login", values);
-    return response.data;
-  } catch (error) {
-    return error.response?.data || {
-      success: false,
-      message: error.message,
-    };
-  }
+  const response = await axiosInstance.post("/users/login", values);
+  return response.data;
 };
 
 export const GetCurrentUser = async () => {
-  try {
-    const response = await axiosInstance.get("/users/getCurrentUser");
-    return response.data;
-  } catch (error) {
-    return error.response?.data || {
-      success: false,
-      message: error.message,
-    };
-  }
+  const response = await axiosInstance.get("/users/getCurrentUser");
+  return response.data;
 };
 
 export const ForgetPassword = async (values) => {
-  try {
-    const response = await axiosInstance.post("/users/forgetPassword", values);
-    return response.data;
-  } catch (error) {
-    return error.response?.data || {
-      success: false,
-      message: error.message,
-    };
-  }
+  const response = await axiosInstance.post("/users/forgetPassword", values);
+  return response.data;
 };
 
 export const ResetPassword = async (values) => {
-  try {
-    const response = await axiosInstance.post("/users/resetPassword", values);
-    return response.data;
-  } catch (error) {
-    return error.response?.data || {
-      success: false,
-      message: error.message,
-    };
-  }
+  const response = await axiosInstance.post("/users/resetPassword", values);
+  return response.data;
 };
 
 

@@ -1,9 +1,11 @@
 import { Col, Row, Modal, Form, Input, Select, Button, message } from "antd";
+import { InputNumber } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../../redux/loaderSlice";
 import { addMovie, updateMovie } from "../../api/movie";
 import { useEffect } from "react";
+import { mapErrorToMessage } from "../../utils/errorMapper";
 
 const MovieForm = ({
   isModalOpen,
@@ -14,6 +16,7 @@ const MovieForm = ({
   setSelectedMovie,
 }) => {
   const dispatch = useDispatch();
+  const [form] = Form.useForm();
 
   const handleCancel = () => {
     form.resetFields();
@@ -24,42 +27,50 @@ const MovieForm = ({
   const OnFinish = async (values) => {
     try {
       dispatch(showLoading());
-      let response = null;
+
+      const payload = {
+      ...values,
+      releaseDate: new Date(values.releaseDate).toISOString().split("T")[0],
+    };
 
       if (formType === "edit") {
-        response = await updateMovie({
-          ...values,
+        await updateMovie({
+          ...payload,
           movieId: selectedMovie._id,
         });
+
+        message.success("Movie updated successfully");
       } else {
-        response = await addMovie({
-          ...values,
-          releaseDate: new Date(values.releaseDate),
-        });
+        await addMovie(
+          payload
+        );
       }
 
-      if (response.success) {
-        message.success(response.message);
-        FetchMovieData();
-        setIsModalOpen(false);
-      }
+      FetchMovieData();
+      setIsModalOpen(false);
     } catch (error) {
-      message.error(error?.message || "Something went wrong");
+      message.error(mapErrorToMessage(error));
     } finally {
       dispatch(hideLoading());
       setSelectedMovie(null);
     }
   };
 
-  const [form] = Form.useForm();
-
-  useEffect(() => {
-    if (formType === "edit" && selectedMovie) {
-      form.setFieldsValue(selectedMovie);
-    } else {
-      form.resetFields();
-    }
-  }, [selectedMovie, formType]);
+  /**
+   * Prefill data when editing
+   */
+useEffect(() => {
+  if (formType === "edit" && selectedMovie) {
+    form.setFieldsValue({
+      ...selectedMovie,
+      releaseDate: selectedMovie.releaseDate
+        ?.toString()
+        .split("T")[0],
+    });
+  } else {
+    form.resetFields();
+  }
+}, [selectedMovie, formType]);
 
   return (
     <Modal
@@ -102,7 +113,10 @@ const MovieForm = ({
                     { required: true, message: "Movie duration is required" },
                   ]}
                 >
-                  <Input type="number" placeholder="Enter the movie duration" />
+                  <InputNumber
+                    style={{ width: "100%" }}
+                    placeholder="Enter duration"
+                  />
                 </Form.Item>
               </Col>
 
@@ -115,6 +129,7 @@ const MovieForm = ({
                   ]}
                 >
                   <Select
+                    mode="multiple"
                     placeholder="Select Language"
                     options={[
                       { value: "English", label: "English" },
@@ -152,7 +167,8 @@ const MovieForm = ({
               rules={[{ required: true, message: "Movie genre is required!" }]}
             >
               <Select
-                placeholder="Select Movie"
+                mode="multiple"
+                placeholder="Select Genre"
                 options={[
                   { value: "Action", label: "Action" },
                   { value: "Comedy", label: "Comedy" },

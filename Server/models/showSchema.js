@@ -19,7 +19,7 @@ const showSchema = new mongoose.Schema(
         time: {
             type: String,
             required: true,
-        }, 
+        },
         movie: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "movies",
@@ -36,10 +36,26 @@ const showSchema = new mongoose.Schema(
             required: true,
             min: 1,
         },
+        // bookedSeats: {
+        //     type: Array,
+        //     default: [],
+        // },
+
+        // 🔐 Critical for atomic booking logic
         bookedSeats: {
-            type: Array,
+            type: [Number],
             default: [],
+            index: true,
+            validate: {
+                validator: function (arr) {
+                    return arr.every(
+                        (seat) => Number.isInteger(seat) && seat > 0 && seat <= this.totalSeats
+                    );
+                },
+                message: "Invalid seat number detected",
+            },
         },
+
         theatre: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "theatres",

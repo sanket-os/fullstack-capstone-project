@@ -2,6 +2,8 @@ import { message, Modal } from "antd";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../../redux/loaderSlice";
 import { deleteTheatre } from "../../api/theatre";
+import { mapErrorToMessage } from "../../utils/errorMapper";
+
 
 const DeleteTheatreModal = ({
     isDeleteModalOpen,
@@ -17,16 +19,13 @@ const DeleteTheatreModal = ({
             dispatch(showLoading());
 
             const theatreId = selectedTheatre._id;
-            const response = await deleteTheatre({ theatreId: theatreId });
+            await deleteTheatre({ theatreId: theatreId });
 
-            if (response.success) {
-                message.success(response.message);
-                fetchTheatreData();
-            } else {
-                message.warning(response?.message || "Delete failed");
-            }
+            message.success("Theatre deleted successfully");
+            fetchTheatreData();
+
         } catch (error) {
-            message.error(error?.message || "Failed to delete theatre");
+            message.error(mapErrorToMessage(error));
         } finally {
             dispatch(hideLoading());
             setIsDeleteModalOpen(false);
@@ -34,10 +33,12 @@ const DeleteTheatreModal = ({
         }
     };
 
+
     const handleCancel = () => {
         setIsDeleteModalOpen(false);
         setSelectedTheatre(null);
     };
+
 
     return (
         <div>
@@ -50,6 +51,7 @@ const DeleteTheatreModal = ({
                 <p className="pt-3 fs-18">
                     Are you sure you want to delete this theatre {selectedTheatre.name}?
                 </p>
+
 
                 <p className="pb-3 fs-18">
                     This action can't be undone and you'll lose this theatre data.

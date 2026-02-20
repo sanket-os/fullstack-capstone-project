@@ -4,6 +4,16 @@ const {
   makePaymentAndBookShow,
 } = require("../controllers/bookingController");
 
+const { allowRoles } = require("../middlewares/roleMiddleware");
+const { validateJWTToken } = require("../middlewares/authorizationMiddleware");
+
+const validateRequest = require("../middlewares/validateRequest");
+
+const {
+  createPaymentIntentSchema,
+  bookingSchema,
+} = require("../validators/booking.schema");
+
 const router = require("express").Router();
 
 /**
@@ -12,7 +22,12 @@ const router = require("express").Router();
  * Used by frontend to initiate payment.
  * Returns clientSecret for Stripe PaymentElement.
  */
-router.post("/createPaymentIntent", createPaymentIntent);
+router.post("/createPaymentIntent", 
+  validateJWTToken,
+  allowRoles("user"),
+  validateRequest(createPaymentIntentSchema),
+  createPaymentIntent
+);
 
 
 /**
@@ -20,7 +35,12 @@ router.post("/createPaymentIntent", createPaymentIntent);
  * -----------------------------------
  * JWT-protected (middleware applied at app level)
  */
-router.get("/getAllBookings", getAllBookings);
+router.get(
+  "/getAllBookings",
+  validateJWTToken,
+  allowRoles("user"),
+  getAllBookings
+);
 
 /**
  * Make payment verification + book show
@@ -31,6 +51,12 @@ router.get("/getAllBookings", getAllBookings);
  * 3. Seats are locked atomically
  * 4. Booking is created
  */
-router.post("/makePaymentAndBookShow", makePaymentAndBookShow);
+router.post(
+  "/makePaymentAndBookShow",
+  validateJWTToken,
+  allowRoles("user"),
+  validateRequest(bookingSchema),
+  makePaymentAndBookShow
+);
 
 module.exports = router;

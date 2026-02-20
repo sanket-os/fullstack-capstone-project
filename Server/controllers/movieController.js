@@ -1,4 +1,5 @@
 const movieModel = require("../models/movieSchema");
+const AppError = require("../utils/AppError");
 
 /**
  * ----------------------------------------------------
@@ -8,21 +9,19 @@ const movieModel = require("../models/movieSchema");
 const addMovie = async (req, res, next) => {
     try {
         if (!req.body || Object.keys(req.body).length === 0) {
-            res.status(400);
-            throw new Error("Movie details are required");
+            throw new AppError(400, "MOVIE_DATA_REQUIRED", "Movie details are required");
         }
 
         const newMovie = new movieModel(req?.body);
         await newMovie.save();
 
 
-        res.send({
+        res.status(201).json({
             success: true,
             message: "New movie has been added",
             // by design choice we are not entering data here, we are using .save()
         });
     } catch (error) {
-        res.status(400);
         next(error);
     }
 };
@@ -37,13 +36,12 @@ const getAllMovies = async (req, res, next) => {
         const allMovies = await movieModel.find();
 
 
-        res.send({
+        res.status(200).json({
             success: true,
             message: "All movies have been fetched",
             data: allMovies,
         });
     } catch (error) {
-        res.status(400);
         next(error);
     }
 };
@@ -62,10 +60,9 @@ const getMovieById = async (req, res, next) => {
         const movie = await movieModel.findById(req.params.id);
 
         if (!movie) {
-            res.status(404);
-            throw new Error("Movie not found");
+            throw new AppError(404, "MOVIE_NOT_FOUND", "Movie not found");
         }
-        res.send({
+        res.status(200).json({
             success: true,
             message: "The movie has been fetched",
             data: movie,
@@ -86,8 +83,7 @@ const updateMovie = async (req, res, next) => {
         const { movieId, ...updateData } = req.body;
 
         if (!movieId) {
-            res.status(400);
-            throw new Error("movieId is required");
+            throw new AppError(400, "INVALID_ID", "Invalid movie ID");
         }
 
         const updatedMovie = await movieModel.findByIdAndUpdate(
@@ -97,12 +93,11 @@ const updateMovie = async (req, res, next) => {
         );
 
         if (!updatedMovie) {
-            res.status(404);
-            throw new Error("Movie not found");
+            throw new AppError(404, "MOVIE_NOT_FOUND", "Movie not found");
         }
 
 
-        res.send({
+        res.status(200).json({
             success: true,
             message: "Movie updated successfully",
             data: updatedMovie,
@@ -123,13 +118,12 @@ const deleteMovie = async (req, res, next) => {
 
         const deletedMovie = await movieModel.findByIdAndDelete(movieId);
 
-        
-    if (!deletedMovie) {
-      res.status(404);
-      throw new Error("Movie not found");
-    }
 
-        res.send({
+        if (!deletedMovie) {
+            throw new AppError(404, "MOVIE_NOT_FOUND", "Movie not found");
+        }
+
+        res.status(200).json({
             success: true,
             message: "Movie deleted successfully",
         });

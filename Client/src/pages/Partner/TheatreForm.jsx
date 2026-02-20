@@ -4,6 +4,7 @@ import { addTheatre, updateTheatre } from "../../api/theatre";
 import { Col, Modal, Row, Form, Input, Button, message } from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect } from "react";
+import { mapErrorToMessage } from "../../utils/errorMapper";
 
 const TheatreForm = ({
     isModalOpen,
@@ -17,6 +18,7 @@ const TheatreForm = ({
     const { user } = useSelector((state) => state.user);
     const [form] = Form.useForm();
 
+
     useEffect(() => {
         if (formType === "edit" && selectedTheatre) {
             form.setFieldsValue(selectedTheatre);
@@ -25,34 +27,31 @@ const TheatreForm = ({
         }
     }, [formType, selectedTheatre, form]);
 
+
     const onFinish = async (values) => {
         try {
             dispatch(showLoading());
 
-            let response = null;
-
+           
             if (formType === "add") {
-                response = await addTheatre({ ...values, owner: user._id });
+                await addTheatre({ ...values, owner: user._id });
+                message.success("Theatre added successfully");
             } else {
                 values.theatreId = selectedTheatre._id;
-                response = await updateTheatre(values);
+                await updateTheatre(values);
+                message.success("Theatre updated successfully");
             }
 
-            if (response.success) {
-                message.success(response.message);
-                fetchTheatreData();
-                handleClose();
-            } else {
-                message.warning(response?.message || "Operation failed");
-            }
+            fetchTheatreData();
+            handleClose();
+            
         } catch (error) {
-            message.error(error?.message || "Something went wrong");
+            message.error(mapErrorToMessage(error));
         } finally {
             dispatch(hideLoading());
-            setSelectedTheatre(null);
-            setIsModalOpen(false);
         }
     };
+
 
     const handleClose = () => {
         setIsModalOpen(false);
@@ -70,9 +69,9 @@ const TheatreForm = ({
             footer={null}
         >
             <Form
+                form={form}   
                 layout="vertical"
                 style={{ width: "100%" }}
-                initialValues={selectedTheatre}
                 onFinish={onFinish}
             >
                 <Row
@@ -99,6 +98,7 @@ const TheatreForm = ({
                         </Form.Item>
                     </Col>
 
+
                     <Col span={24}>
                         <Form.Item
                             label="Theatre Address"
@@ -114,6 +114,7 @@ const TheatreForm = ({
                             ></TextArea>
                         </Form.Item>
                     </Col>
+
 
                     <Col span={24}>
                         <Row
@@ -140,6 +141,7 @@ const TheatreForm = ({
                                 </Form.Item>
                             </Col>
 
+
                             <Col span={12}>
                                 <Form.Item
                                     label="Phone Number"
@@ -159,6 +161,7 @@ const TheatreForm = ({
                     </Col>
                 </Row>
 
+
                 <Form.Item>
                     <Button
                         block
@@ -169,6 +172,7 @@ const TheatreForm = ({
                         Submit the Data
                     </Button>
 
+
                     <Button className="mt-3" block onClick={handleClose}>
                         Cancel
                     </Button>
@@ -177,5 +181,6 @@ const TheatreForm = ({
         </Modal>
     );
 };
+
 
 export default TheatreForm;

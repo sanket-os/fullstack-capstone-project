@@ -8,43 +8,42 @@ import moment from "moment";
 import { getMovieById } from "../api/movie";
 import { getAllTheatresByMovie } from "../api/show";
 import { hideLoading, showLoading } from "../redux/loaderSlice";
+import { mapErrorToMessage } from "../utils/errorMapper";
+
 
 const SingleMovie = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+
   const [movie, setMovie] = useState(null);
   const [date, setDate] = useState(moment().format("YYYY-MM-DD"));
   const [theatres, setTheatres] = useState([]);
 
+
   const fetchMovie = async () => {
     try {
       dispatch(showLoading());
-      const response = await getMovieById(id);
 
-      if (response?.success) {
-        setMovie(response.data);
-      } else {
-        message.warning(response?.message || "Failed to load movie");
-      }
+      const response = await getMovieById(id);
+      setMovie(response.data);
+
     } catch (error) {
-      message.error(error?.message || "Error loading movie");
+      message.error(mapErrorToMessage(error));
     } finally {
       dispatch(hideLoading());
     }
   };
 
+
   const fetchTheatres = async () => {
     try {
       dispatch(showLoading());
-      const response = await getAllTheatresByMovie({ movie: id, date });
 
-      if (response?.success) {
-        setTheatres(response.data);
-      } else {
-        message.warning(response?.message || "No theatres available");
-      }
+      const response = await getAllTheatresByMovie({ movie: id, date });
+      setTheatres(response.data);
+    
     } catch (error) {
       message.error(error?.message || "Error loading theatres");
     } finally {
@@ -52,19 +51,23 @@ const SingleMovie = () => {
     }
   };
 
+
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
     setDate(selectedDate);
     navigate(`/movie/${id}?date=${selectedDate}`);
   };
 
+
   useEffect(() => {
     fetchMovie();
   }, [id]);
 
+
   useEffect(() => {
     fetchTheatres();
   }, [date, id]);
+
 
   return (
     <div className="inner-container" style={{ paddingTop: "20px" }}>
@@ -73,6 +76,7 @@ const SingleMovie = () => {
           <div className="flex-shrink-0 me-3 single-movie-img">
             <img src={movie.poster} width={150} alt="Movie Poster" />
           </div>
+
 
           <div className="w-100">
             <h1 className="mt-0">{movie.movieName}</h1>
@@ -113,6 +117,7 @@ const SingleMovie = () => {
         </div>
       )}
 
+
       {theatres.length === 0 && (
         <div className="pt-3">
           <h2 className="blue-clr">
@@ -121,9 +126,11 @@ const SingleMovie = () => {
         </div>
       )}
 
+
       {theatres.length > 0 && (
         <div className="theatre-wrapper mt-3 pt-3">
           <h2>Theatres</h2>
+
 
           {theatres.map((theatre) => (
             <div key={theatre._id}>
@@ -132,6 +139,7 @@ const SingleMovie = () => {
                   <h3>{theatre.name}</h3>
                   <p>{theatre.address}</p>
                 </Col>
+
 
                 <Col xs={24} lg={16}>
                   <ul className="show-ul">
@@ -154,6 +162,7 @@ const SingleMovie = () => {
                   </ul>
                 </Col>
               </Row>
+
 
               <Divider />
             </div>

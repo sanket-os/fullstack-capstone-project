@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const AppError = require("../utils/AppError");
 
 /**
  * ----------------------------------------------------
@@ -9,25 +10,31 @@ const jwt = require("jsonwebtoken");
  */
 const validateJWTToken = (req, res, next) => {
     try { 
-        const token = req.cookies.bms_token;
+        const token = req.cookies?.bms_token;
 
         if (!token) {
             return res.status(401).json({
                 success: false,
-                message: "Not authenticated",
+                message: "Authentication required",
             });
         }
 
-        const decode = jwt.verify(token, process.env.SECRET_KEY);
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
         // The token’s signature is valid (i.e., created using your SECRET_KEY).
         // The token hasn’t expired.
 
-        req.body = { email: decode?.email, userId: decode?.userId, role: decode?.role, ...req.body };
+        req.user = { 
+            userId: decoded?.userId, 
+            email: decoded?.email, 
+            role: decoded?.role, 
+            // ...req.body 
+        };
 
         next();
     } catch (error) {
-        res.status(401);
-        next(error);
+        return next(
+            new AppError(401, "TOKEN_INVALID", "Invalid or expired token")
+        );
     }
 };
 

@@ -1,33 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { Table, Button, message } from "antd";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../../redux/loaderSlice";
-import { getAllTheatresForAdmin, updateTheatre } from '../../api/theatre';
+import { getAllTheatresForAdmin, updateTheatre } from "../../api/theatre";
+import { mapErrorToMessage } from "../../utils/errorMapper";
+
 
 const TheatreTable = () => {
-
   const dispatch = useDispatch();
   const [theatres, setTheatres] = useState([]);
 
   const getData = async () => {
     try {
       dispatch(showLoading());
+
       const response = await getAllTheatresForAdmin();
 
-      if (response?.success) {
-        const allTheatres = response.data;
-        setTheatres(
-          allTheatres.map(function (item) {
-            return { ...item, key: `theatre${item._id}` };
-          })
-        );
-      }
+      const allTheatres = response.data;
+      setTheatres(
+        allTheatres.map(function (item) {
+          return { ...item, key: `theatre${item._id}` };
+        }),
+      );
+
     } catch (error) {
-      message.error(error?.message || "Something went wrong");
+      message.error(mapErrorToMessage(error));
     } finally {
       dispatch(hideLoading());
     }
   };
+
 
   const handleStatusChange = async (theatre) => {
     try {
@@ -39,25 +41,23 @@ const TheatreTable = () => {
         isActive: !theatre.isActive,
       };
 
-      const response = await updateTheatre(values);
+      await updateTheatre(values);
 
+      message.success(
+        theatre.isActive
+          ? "Theatre blocked successfully"
+          : "Theatre approved successfully",
+      );
 
-      if (response?.success) {
-        message.success(
-          theatre.isActive
-            ? "Theatre blocked successfully"
-            : "Theatre approved successfully"
-        );
-        getData();
-      } else {
-        message.warning(response?.message || "Status update failed");
-      }
+      getData();
+
     } catch (error) {
-      message.error(error?.message || "Something went wrong");    
+      message.error(mapErrorToMessage(error));
     } finally {
       dispatch(hideLoading());
     }
   };
+  
 
   const columns = [
     {
@@ -105,13 +105,9 @@ const TheatreTable = () => {
         return (
           <div className="d-flex align-items-center gap-10">
             {data.isActive ? (
-              <Button onClick={(() =>
-                handleStatusChange(data))}>
-                Block</Button>
+              <Button onClick={() => handleStatusChange(data)}>Block</Button>
             ) : (
-              <Button onClick={() =>
-                handleStatusChange(data)}>
-                Approve</Button>
+              <Button onClick={() => handleStatusChange(data)}>Approve</Button>
             )}
           </div>
         );
@@ -119,9 +115,11 @@ const TheatreTable = () => {
     },
   ];
 
+
   useEffect(() => {
     getData();
   }, []);
+  
 
   return (
     <div>
@@ -129,5 +127,6 @@ const TheatreTable = () => {
     </div>
   );
 };
+
 
 export default TheatreTable;

@@ -7,6 +7,7 @@ import moment from "moment";
 
 import { getAllMovies } from "../api/movie";
 import { hideLoading, showLoading } from "../redux/loaderSlice";
+import { mapErrorToMessage } from "../utils/errorMapper";
 
 const Home = () => {
 
@@ -22,17 +23,15 @@ const Home = () => {
       dispatch(showLoading());
       const response = await getAllMovies();
 
-      if (response.success) {
-        setMovies(response.data);
-      } else {
-        message.warning(response?.message || "Failed to fetch movies");
-      }
+      setMovies(response.data);
+    
     } catch (error) {
-      message.error(error?.message || "Something went wrong while loading movies");
+      message.error(mapErrorToMessage(error));
     } finally {
       dispatch(hideLoading());
     }
   };
+
 
   useEffect(() => {
     getData();
@@ -42,12 +41,14 @@ const Home = () => {
     setSearchText(event.target.value);
   };
 
-  // ✅ Memoized filtering for better performance
+
+  // Memoized filtering for better performance
   const filteredMovies = useMemo(() => {
     return movies.filter((movie) =>
       movie.movieName.toLowerCase().includes(searchText.toLowerCase())
     );
   }, [movies, searchText]);
+
 
   const openMovie = (movieId) => {
     navigate(
@@ -72,6 +73,7 @@ const Home = () => {
           />
         </Col>
       </Row>
+
 
       <Row
         className='justify-content-center'

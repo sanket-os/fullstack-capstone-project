@@ -1,4 +1,4 @@
-import { Layout, Menu, message } from "antd";
+import { Layout, Menu } from "antd";
 import { Content, Footer, Header } from "antd/es/layout/layout";
 import React, { useEffect } from "react";
 import {
@@ -7,20 +7,24 @@ import {
     ProfileOutlined,
     UserOutlined,
 } from "@ant-design/icons";
+
 import { Link, useNavigate } from "react-router-dom";
 import { GetCurrentUser } from "../api/user";
 import { useSelector, useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../redux/loaderSlice";
 import { setUser } from "../redux/userSlice";
 import { axiosInstance } from "../api/index";
+import { mapErrorToMessage } from "../utils/errorMapper";
+
 
 const ProtectedRoute = ({ children }) => {
 
     const { user } = useSelector((state) => state.user);
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const [authChecked, setAuthChecked] = React.useState(false);
 
-     useEffect(() => {
+    useEffect(() => {
         getValidUser();
     }, []);
 
@@ -32,23 +36,37 @@ const ProtectedRoute = ({ children }) => {
             const response = await GetCurrentUser();
             console.log('API Response:', response); // Debug log
 
-            if (response.success) {
-                dispatch(setUser(response?.data));
-            } else {
-                message.warning(response?.message || 'Failed to fetch user data');
-                navigate("/login", { replace: true });
-            }
-        } catch (error) {
-            console.error('Error fetching user:', error); // Debug log
+            dispatch(setUser(response?.data));
 
-            message.error(error.message || 'Something went wrong');
+        } catch (error) {
+            /**
+                * If session invalid → redirect silently
+                * No scary error message needed
+            */
+            dispatch(setUser(null));
             navigate("/login", { replace: true });
+
+            // Optional debug:
+            console.warn("Session expired:", mapErrorToMessage(error));
         } finally {
             dispatch(hideLoading());
+            setAuthChecked(true); // ✅ mark auth complete
         }
     };
 
-   
+
+    const handleLogout = async () => {
+        try {
+            await axiosInstance.post("/users/logout");
+        } catch (e) {
+            // Even if logout fails, force logout locally
+        } finally {
+            dispatch(setUser(null));
+            navigate("/login", { replace: true });
+            window.location.reload(); // optional but useful in payment apps
+        }
+    };
+
 
     const navItems = [
         {
@@ -64,12 +82,13 @@ const ProtectedRoute = ({ children }) => {
             icon: <HomeOutlined />,
         },
 
+
         {
             key: "roleProfile",
             label: (
                 <span
                     onClick={() => {
-                        if (user.role === "admin") {
+                        if (user?.role === "admin") {
                             navigate("/admin", { replace: true });
                         } else if (user.role === "partner") {
                             navigate("/partner", { replace: true });
@@ -99,24 +118,15 @@ const ProtectedRoute = ({ children }) => {
             children: [
                 {
                     key: "logout",
-                    label: (
-                        <Link
-                            to="/login"
-                            onClick={async () => {
-                                await axiosInstance.post("/users/logout");
-                                navigate("/login", { replace: true });
-                                dispatch(setUser(null));
-                            }}
-                        >
-                            Logout
-                        </Link>
-                    ),
+                    label: <Link onClick={handleLogout}>Logout</Link>,
                     icon: <LogoutOutlined />,
                 },
             ],
         },
 
     ];
+
+    if (!authChecked) return null;
 
     return (
         <>
@@ -137,9 +147,11 @@ const ProtectedRoute = ({ children }) => {
                     <Menu theme="dark" mode="horizontal" items={navItems} />
                 </Header>
 
+
                 <Content style={{ minHeight: "calc(100vh - 128px)" }}>
                     {children}
                 </Content>
+
 
                 <Footer
                     style={{

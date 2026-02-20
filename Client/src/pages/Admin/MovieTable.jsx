@@ -7,9 +7,10 @@ import { getAllMovies } from "../../api/movie";
 import MovieForm from './MovieForm';
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import DeleteMovieModal from './DeleteMovieModal';
+import { mapErrorToMessage } from "../../utils/errorMapper";
+
 
 const MovieTable = () => {
-
     const [movies, setMovies] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -57,17 +58,19 @@ const MovieTable = () => {
         {
             title: "Genre",
             dataIndex: "genre",
+            render: (genres) => genres.join(", "),
         },
 
         {
             title: "Language",
             dataIndex: "language",
+            render: (langs) => langs.join(", "),
         },
 
         {
             title: "Release Date",
             dataIndex: "releaseDate",
-            render: (text, data) => {
+            render: (_, data) => {
                 return moment(data.releaseDate).format("MM-DD-YYYY");
             },
         },
@@ -84,6 +87,7 @@ const MovieTable = () => {
                                     releaseDate: moment(data.releaseDate).format("YYYY-MM-DD"),
                                 };
 
+
                                 setSelectedMovie(movieForEdit);
                                 setFormType("edit");
                                 setIsModalOpen(true);
@@ -91,6 +95,7 @@ const MovieTable = () => {
                         >
                             <EditOutlined />
                         </Button>
+
 
                         <Button
                             danger
@@ -110,15 +115,12 @@ const MovieTable = () => {
     const getData = async () => {
         try {
             dispatch(showLoading());
-            const response = await getAllMovies();
 
-            if (response.success === true) {
-                setMovies(response?.data);
-            } else {
-                message.warning(response?.message || "Failed to fetch movies");
-            }
+            const response = await getAllMovies();
+            setMovies(response?.data);
+           
         } catch (error) {
-            message.error(error?.message || "Something went wrong");
+            message.error(mapErrorToMessage(error));
         } finally {
             dispatch(hideLoading());
         }
@@ -144,7 +146,10 @@ const MovieTable = () => {
                 </Button>
             </div>
 
+
             <Table rowKey="_id" columns={tableHeadings} dataSource={movies} />
+
+
             {isModalOpen && (
                 <MovieForm
                     isModalOpen={isModalOpen}
@@ -155,6 +160,7 @@ const MovieTable = () => {
                     setSelectedMovie={setSelectedMovie}
                 />
             )}
+            
 
             {isDeleteModalOpen && (
                 <DeleteMovieModal

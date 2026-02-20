@@ -17,6 +17,6 @@ const Partner = () => {
       <Tabs items={items} />
     </div>
   );
-;}
+};
 
 export default Partner;

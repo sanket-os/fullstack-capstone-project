@@ -1,4 +1,5 @@
 const Show = require("../models/showSchema");
+const AppError = require("../utils/AppError");
 
 /**
  * ----------------------------------------------------
@@ -7,17 +8,15 @@ const Show = require("../models/showSchema");
  */
 const addShow = async (req, res, next) => {
     try {
-
         if (!req.body || Object.keys(req.body).length === 0) {
-            res.status(400);
-            throw new Error("Show details are required");
+            throw new AppError(400, "SHOW_DATA_REQUIRED", "Show details are required");
         }
 
         const newShow = new Show(req.body);
         await newShow.save();
 
 
-        res.send({
+        res.status(201).json({
             success: true,
             message: "New show has been added",
         })
@@ -38,11 +37,10 @@ const deleteShow = async (req, res, next) => {
         const deletedShow = await Show.findByIdAndDelete(showId);
 
         if (!deletedShow) {
-            res.status(404);
-            throw new Error("Show not found");
+            throw new AppError(404, "SHOW_NOT_FOUND", "Show not found");
         }
 
-        res.send({
+        res.status(200).json({
             success: true,
             message: "Show deleted successfully",
         });
@@ -61,8 +59,7 @@ const updateShow = async (req, res, next) => {
         const { showId, ...updateData } = req.body;
 
         if (!showId) {
-            res.status(400);
-            throw new Error("showId is required");
+            throw new AppError(400, "INVALID_ID", "Invalid show ID");
         }
 
         const updatedShow = await Show.findByIdAndUpdate(
@@ -72,11 +69,10 @@ const updateShow = async (req, res, next) => {
         );
 
         if (!updatedShow) {
-            res.status(404);
-            throw new Error("Show not found");
+            throw new AppError(404, "SHOW_NOT_FOUND", "Show not found");
         }
 
-        res.send({
+        res.status(200).json({
             success: true,
             message: "Show updated successfully",
             data: updatedShow,
@@ -95,18 +91,21 @@ const getAllShowsByTheatre = async (req, res, next) => {
     try {
         const theatreId = req.params.theatreId;
 
+        if (!theatreId) {
+            throw new AppError(400, "INVALID_ID", "Invalid theatre ID");
+        }
+
         const shows = await Show.find({
             theatre: theatreId
         }).populate("movie");
 
 
-        res.send({
+        res.status(200).json({
             success: true,
-            message: "All shows are fetched",
+            message: "All shows fetched",
             data: shows,
         });
     } catch (error) {
-        res.status(500);
         next(error);
     }
 };
@@ -135,36 +134,40 @@ const getAllShowsByTheatre = async (req, res, next) => {
 const getAllTheatresByMovie = async (req, res, next) => {
     try {
         const { movie, date } = req.body;
+
+        if (!movie || !date) {
+            throw new AppError(400, "MOVIE_DATE_REQUIRED", "Movie and date are required");
+        }
+
         const shows = await Show.find({ movie, date }).populate("theatre");
-        
+
         let uniqueTheatres = [];
-        
+
         shows.forEach((show) => {
             // Check if this theatre is already in uniqueTheatres
             let isTheatre = uniqueTheatres.find(
                 (theatre) => theatre._id.toString() === show.theatre._id.toString()
             );
-            
+
             if (!isTheatre) {
                 // Filter all shows that belong to this theatre
                 let showsOfThisTheatre = shows.filter(
                     (showObj) => showObj.theatre._id.toString() === show.theatre._id.toString()
                 );
-                
+
                 uniqueTheatres.push({
                     ...show.theatre._doc,
                     shows: showsOfThisTheatre,
                 });
             }
         });
-        
-        res.send({
+
+        res.status(200).json({
             success: true,
-            message: "All theatres are fetched",
+            message: "All theatres fetched",
             data: uniqueTheatres,
         });
     } catch (error) {
-        res.status(400);
         next(error);
     }
 };
@@ -194,18 +197,22 @@ const getAllTheatresByMovie = async (req, res, next) => {
  */
 const getShowById = async (req, res, next) => {
     try {
-        const shows = await Show.findById(req.params.showId)
+        const { showId } = req.params;
+
+        const show = await Show.findById(showId)
             .populate("movie")
             .populate("theatre");
 
+        if (!show) {
+            throw new AppError(404, "SHOW_NOT_FOUND", "Show not found");
+        }
 
-        res.send({
+        res.status(200).json({
             success: true,
             message: "All shows are fetched",
-            data: shows,
+            data: show,
         });
     } catch (error) {
-        res.status(400);
         next(error);
     }
 };

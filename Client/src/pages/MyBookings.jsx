@@ -5,6 +5,7 @@ import { hideLoading, showLoading } from "../redux/loaderSlice";
 import { useDispatch } from "react-redux";
 import moment from "moment";
 import { Link } from "react-router-dom";
+import { mapErrorToMessage } from "../utils/errorMapper";
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -13,14 +14,12 @@ const MyBookings = () => {
   const getData = async () => {
     try {
       dispatch(showLoading());
+
       const response = await getAllBookings();
-      if (response.success) {
-        setBookings(response.data);
-      } else {
-        message.warning(response.message);
-      }
-    } catch (err) {
-      message.error(err.message);
+      setBookings(response.data);
+
+    } catch (error) {
+      message.error(mapErrorToMessage(error));
     } finally {
       dispatch(hideLoading());
     }
@@ -53,25 +52,31 @@ const MyBookings = () => {
                     
                     <div className="show-details flex-1">
                       <h3 className="mt-0 mb-0">{booking.show?.movie?.movieName }</h3>
+
                       <p>
                         Theatre: <b>{booking.show?.theatre?.name}</b>
                       </p>
+
                       <p>
                         Seats: <b>{booking.seats.join(", ")}</b>
                       </p>
+
                       <p>
                         Date & Time:
                         <b>
-                          {moment(booking.show.date).format("MMM Do YYYY")}
+                          {moment(booking.show.date).format("MMM Do YYYY")} at{" "}
                           {moment(booking.show.time, "HH:mm").format("hh:mm A")}
                         </b>
                       </p>
+
                       <p>
                         Amount:
-                        <b>
+                        {/* <b>
                           Rs.{booking.seats.length * booking.show.ticketPrice}
-                        </b>
+                        </b> */}
+                         <b>₹{(booking.amount / 100).toFixed(2)}</b>
                       </p>
+
                       <p>
                         Booking ID: <b>{booking.transactionId} </b>
                       </p>
@@ -87,6 +92,7 @@ const MyBookings = () => {
       {!bookings.length && (
         <div className="text-center pt-3">
           <h1>You've not booked any show yet!</h1>
+          
           <Link to="/">
             <Button type="primary">Start Booking</Button>
           </Link>

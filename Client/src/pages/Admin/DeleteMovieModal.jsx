@@ -2,6 +2,7 @@ import { message, Modal } from "antd";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../../redux/loaderSlice";
 import { deleteMovie } from "../../api/movie";
+import { mapErrorToMessage } from "../../utils/errorMapper";
 
 const DeleteMovieModal = ({
     isDeleteModalOpen,
@@ -15,17 +16,15 @@ const DeleteMovieModal = ({
     const handleOk = async () => {
         try {
             dispatch(showLoading());
+
             const movieId = selectedMovie._id;
-            const response = await deleteMovie({ movieId });
-            
-            if (response.success) {
-                message.success(response.message);
-                FetchMovieData();
-            } else {
-                message.warning(response.message);
-            }
+            await deleteMovie({ movieId });
+
+            message.success("Movie deleted successfully");
+            FetchMovieData();
+
         } catch (error) {
-            message.error(error?.message || "Failed to delete movie");
+            message.error(mapErrorToMessage(error));
         } finally {
             setIsDeleteModalOpen(false);
             setSelectedMovie(null);
@@ -50,6 +49,7 @@ const DeleteMovieModal = ({
             <p className="pt-3 fs-18">
                 Are you sure you want to delete this movie {selectedMovie?.movieName}?
             </p>
+
 
             <p className="pb-3 fs-18">
                 This action can't be undone and you'll lose this movie data

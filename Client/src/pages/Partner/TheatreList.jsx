@@ -7,6 +7,8 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import TheatreForm from "./TheatreForm";
 import ShowModal from "./ShowModal";
 import DeleteTheatreModal from "./DeleteTheatreModal";
+import { mapErrorToMessage } from "../../utils/errorMapper";
+
 
 const TheatreList = () => {
     const dispatch = useDispatch();
@@ -91,26 +93,26 @@ const TheatreList = () => {
         },
     ];
 
+
     const getData = async () => {
         try {
             dispatch(showLoading());
-            const response = await getAllTheatres();
 
-            if (response.success === true) {
-                setTheatres(response.data)
-            } else {
-                message.warning(response?.message || "Failed to fetch theatres");
-            }
+            const response = await getAllTheatres();
+            setTheatres(response.data)
+           
         } catch (error) {
-            message.error(error?.message || "Something went wrong");
+            message.error(mapErrorToMessage(error));
         } finally {
             dispatch(hideLoading());
         }
     };
 
+
     useEffect(() => {
         getData();
     }, []);
+
 
     return (
         <div>
@@ -127,7 +129,9 @@ const TheatreList = () => {
                 </Button>
             </div>
 
+
             <Table rowKey="_id" dataSource={theatres} columns={columns} />
+
 
             {isModalOpen && (
                 <TheatreForm
@@ -140,6 +144,7 @@ const TheatreList = () => {
                 />
             )}
 
+
             {isDeleteModalOpen && (
                 <DeleteTheatreModal
                     isDeleteModalOpen={isDeleteModalOpen}
@@ -149,6 +154,7 @@ const TheatreList = () => {
                     fetchTheatreData={getData}
                 />
             )}
+
 
             {isShowModalOpen && (
                 <ShowModal
@@ -161,5 +167,6 @@ const TheatreList = () => {
         </div>
     );
 };
+
 
 export default TheatreList;

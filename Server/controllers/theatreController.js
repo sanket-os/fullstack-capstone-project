@@ -1,4 +1,5 @@
 const Theatre = require("../models/theatreSchema");
+const AppError = require("../utils/AppError");
 
 /**
  * ----------------------------------------------------
@@ -7,15 +8,14 @@ const Theatre = require("../models/theatreSchema");
  */
 const addTheatre = async (req, res, next) => {
     try {
-          if (!req.body || Object.keys(req.body).length === 0) {
-      res.status(400);
-      throw new Error("Theatre details are required");
-    }
+        if (!req.body || Object.keys(req.body).length === 0) {
+            throw new AppError(400, "THEATRE_DATA_REQUIRED", "Theatre details are required");
+        }
 
         const newTheatre = new Theatre(req.body);
         await newTheatre.save();
 
-        res.send({
+        res.status(201).json({
             success: true,
             message: "New theatre has been added",
         });
@@ -31,27 +31,26 @@ const addTheatre = async (req, res, next) => {
  */
 const updateTheatre = async (req, res, next) => {
     try {
-           const { theatreId, ...updateData } = req.body;
+        const { theatreId, ...updateData } = req.body;
 
-    if (!theatreId) {
-      res.status(400);
-      throw new Error("theatreId is required");
-    }
+        if (!theatreId) {
+            throw new AppError(400, "INVALID_ID", "Invalid theatre ID");
+        }
 
-    const updatedTheatre = await Theatre.findByIdAndUpdate(
-      theatreId,
-      updateData,
-      { new: true }
-    );
+        const updatedTheatre = await Theatre.findByIdAndUpdate(
+            theatreId,
+            updateData,
+            { new: true }
+        );
 
-    if (!updatedTheatre) {
-      res.status(404);
-      throw new Error("Theatre not found");
-    }
+        if (!updatedTheatre) {
+            throw new AppError(404, "THEATRE_NOT_FOUND", "Theatre not found");
+        }
 
-        res.send({
+        res.status(200).json({
             success: true,
             message: "Theatre updated successfully",
+            data: updatedTheatre,
         });
     } catch (err) {
         next(err);
@@ -66,14 +65,17 @@ const updateTheatre = async (req, res, next) => {
 const deleteTheatre = async (req, res, next) => {
     try {
         const theatreId = req.params.theatreId;
+
+        if (!theatreId) {
+            throw new AppError(400, "INVALID_ID", "Invalid theatre ID");
+        }
         const deletedTheatre = await Theatre.findByIdAndDelete(theatreId);
 
-    if (!deletedTheatre) {
-      res.status(404);
-      throw new Error("Theatre not found");
-    }
+        if (!deletedTheatre) {
+            throw new AppError(404, "THEATRE_NOT_FOUND", "Theatre not found");
+        }
 
-        res.send({
+        res.status(200).json({
             success: true,
             message: "Theatre deleted successfully",
         });
@@ -88,21 +90,20 @@ const deleteTheatre = async (req, res, next) => {
  * ----------------------------------------------------
  */
 const getAllTheatres = async (req, res, next) => {
-  try {
-    const allTheatres = await Theatre.find().populate({
-      path: "owner",
-      select: "-password", // explicitly remove sensitive data
-    });
+    try {
+        const allTheatres = await Theatre.find().populate({
+            path: "owner",
+            select: "-password", // explicitly remove sensitive data
+        });
 
-    res.send({
-      success: true,
-      message: "All theatres fetched successfully",
-      data: allTheatres,
-    });
-  } catch (err) {
-    res.status(500);
-    next(err);
-  }
+        res.send({
+            success: true,
+            message: "All theatres fetched successfully",
+            data: allTheatres,
+        });
+    } catch (err) {
+        next(err);
+    }
 };
 
 /**
@@ -112,7 +113,7 @@ const getAllTheatres = async (req, res, next) => {
  */
 const getAllTheatresByOwner = async (req, res, next) => {
     try {
-        const allTheatres = await Theatre.find({ owner: req.body.userId });
+        const allTheatres = await Theatre.find({ owner: req.user.userId });
 
         res.send({
             success: true,
@@ -120,7 +121,6 @@ const getAllTheatresByOwner = async (req, res, next) => {
             data: allTheatres,
         })
     } catch (err) {
-        res.status(500);
         next(err);
     }
 };

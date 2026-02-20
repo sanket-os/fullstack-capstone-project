@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const Booking = require("../models/bookingSchema");
 const Show = require("../models/showSchema");
 const emailHelper = require("../utils/emailHelper");
+const AppError = require("../utils/AppError");
 
 /**
  * ----------------------------------------------------
@@ -11,35 +12,102 @@ const emailHelper = require("../utils/emailHelper");
  * Frontend confirms payment using Stripe PaymentElement.
  * Backend responsibility: create intent only.
  */
+
+/**
+ * ----------------------------------------------------
+ * Create Stripe Payment Intent (SERVER-SIDE PRICING)
+ * ----------------------------------------------------
+ * Frontend only sends showId + seats
+ * Backend:
+ *  - validates seats
+ *  - calculates amount
+ *  - binds payment to user via metadata
+ */
 const createPaymentIntent = async (req, res, next) => {
   try {
-    const { amount } = req.body;
+    const { showId, seats } = req.body;
+    const userId = req.user.userId;
 
-     if (!amount || amount <= 0) {
-      res.status(400);
-      throw new Error("Invalid payment amount");
+    if (!showId || !Array.isArray(seats) || seats.length === 0) {
+      throw new AppError(
+        400,
+        "INVALID_BOOKING_REQUEST",
+        "Show and seats are required"
+      );
     }
 
+    // const { amount } = req.body;
+
+    // if (!amount || amount <= 0) {
+    //   throw new AppError(400, "INVALID_AMOUNT", "Invalid payment amount");
+    // }
+
+     /**
+     * STEP 1: Fetch show securely
+     */
+    const show = await Show.findById(showId);
+
+    if (!show) {
+      throw new AppError(404, "SHOW_NOT_FOUND", "Show not found");
+    }
+
+    /**
+     * STEP 2: Validate seats are not already booked
+     */
+    const alreadyBooked = seats.some(seat =>
+      show.bookedSeats.includes(seat)
+    );
+
+    if (alreadyBooked) {
+      throw new AppError(
+        409,
+        "SEAT_ALREADY_BOOKED",
+        "One or more selected seats are already booked"
+      );
+    }
+
+    /**
+     * STEP 3: SERVER calculates price (never trust frontend)
+     */
+    const amount = seats.length * show.ticketPrice * 100; // rupees → paise
+
+
+
+    // const paymentIntent = await stripe.paymentIntents.create({
+    //   amount: amount,
+    //   // Amount comes from frontend
+    //   // Must be in smallest currency unit
+    //   // ₹500 → 50000 paise
+    //   currency: "inr",
+    //   automatic_payment_methods: {
+    //     enabled: true,
+    //   },
+    // });
+    
+
+     /**
+     * STEP 4: Create Stripe PaymentIntent
+     * Metadata binds payment to THIS booking request.
+     */
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
-      // Amount comes from frontend
-      // Must be in smallest currency unit
-      // ₹500 → 50000 paise
+      amount,
       currency: "inr",
-      automatic_payment_methods: {
-        enabled: true,
+      automatic_payment_methods: { enabled: true },
+
+      metadata: {
+        showId: showId.toString(),
+        seats: JSON.stringify(seats),
+        userId: userId.toString(),
       },
     });
 
-    res.send({
+    res.status(200).json({
       success: true,
       clientSecret: paymentIntent.client_secret,
       // frontend uses with <PaymentElement />, it completes only THIS payment, no create/refund payments
       data: paymentIntent.id,
     });
   } catch (error) {
-    console.log(error);
-    res.status(400);
     next(error);
   }
 };
@@ -59,7 +127,7 @@ const createPaymentIntent = async (req, res, next) => {
  */
 const getAllBookings = async (req, res, next) => {
   try {
-    const bookings = await Booking.find({ user: req.body.userId })
+    const bookings = await Booking.find({ user: req.user.userId })
       // Fetch bookings only for logged-in user
       .populate({
         path: "user",
@@ -79,13 +147,13 @@ const getAllBookings = async (req, res, next) => {
           model: "theatres",
         },
       });
-    res.send({
+
+    res.status(200).json({
       success: true,
       message: "Bookings fetched successfully",
       data: bookings,
     });
   } catch (error) {
-    res.status(400);
     next(error);
   }
 };
@@ -110,12 +178,16 @@ const makePaymentAndBookShow = async (req, res, next) => {
       show: showId,
       seats,
       paymentIntentId, // payment already created & confirmed on frontend
-      user, // injected by auth middleware
     } = req.body;
 
-    if (!showId || !seats?.length || !paymentIntentId || !user) {
-      res.status(400);
-      throw new Error("Missing required booking details");
+    const userId = req.user.userId;
+
+    if (!showId || !seats?.length || !paymentIntentId) {
+      throw new AppError(
+        400,
+        "BOOKING_DATA_MISSING",
+        "Missing required booking details"
+      );
     }
 
     /**
@@ -127,8 +199,11 @@ const makePaymentAndBookShow = async (req, res, next) => {
     });
 
     if (existingBooking) {
-      res.status(409);
-      throw new Error("Duplicate booking attempt detected");
+      throw new AppError(
+        409,
+        "DUPLICATE_BOOKING",
+        "Duplicate booking attempt detected"
+      );
     }
 
     /**
@@ -142,8 +217,28 @@ const makePaymentAndBookShow = async (req, res, next) => {
 
     // Stripe payment must be "succeeded" before proceeding
     if (paymentIntent.status !== "succeeded") {
-      res.status(400);
-      throw new Error("Payment not successful");
+      throw new AppError(400, "PAYMENT_NOT_COMPLETED", "Payment not successful");
+    }
+
+    /**
+     * STEP 2.1: Validate payment metadata (ANTI-TAMPERING)
+     */
+    if (paymentIntent.metadata.userId !== userId.toString()) {
+      throw new AppError(
+        403,
+        "PAYMENT_USER_MISMATCH",
+        "Payment does not belong to this user"
+      );
+    }
+
+    if (paymentIntent.metadata.showId !== showId.toString()) {
+      throw new AppError(400, "SHOW_MISMATCH", "Payment show mismatch");
+    }
+
+    const metadataSeats = JSON.parse(paymentIntent.metadata.seats);
+
+    if (metadataSeats.sort().join(",") !== seats.sort().join(",")) {
+      throw new AppError(400, "SEAT_MISMATCH", "Seat mismatch detected");
     }
 
     /**
@@ -165,6 +260,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
      * Transactions do not serialize reads, Transactions ≠ locks
      * Only the database can safely decide who wins.
      */
+
     const show = await Show.findOneAndUpdate(  // Show.findOneAndUpdate(filter, update, options)
       {
         _id: showId,
@@ -181,8 +277,11 @@ const makePaymentAndBookShow = async (req, res, next) => {
 
     // If show is null → at least one seat was already booked
     if (!show) {
-      res.status(409); // Conflict
-      throw new Error("One or more seats already booked");
+      throw new AppError(
+        409,
+        "SEAT_CONFLICT",
+        "One or more seats already booked"
+      );
     }
 
     /**
@@ -195,7 +294,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
      * - audit trail
      */
     const booking = new Booking({
-      user,
+      user: userId, // ✅ trusted
       show: showId,
       seats,
       transactionId: paymentIntent.id,
@@ -253,7 +352,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
       transactionId: populatedBooking.transactionId,
     }).catch(console.error);
 
-    res.send({
+    res.status(200).json({
       success: true,
       message: "Payment and booking successful",
       data: populatedBooking,
@@ -275,8 +374,6 @@ const makePaymentAndBookShow = async (req, res, next) => {
     // if (error.message.includes("already booked")) {
     //   await stripe.refunds.create({ payment_intent: paymentIntentId });
     // }
-
-    res.status(400);
     next(error);
   }
 };

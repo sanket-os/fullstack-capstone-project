@@ -1,60 +1,62 @@
 import { axiosInstance } from ".";
 
-const handleError = (error, fallbackMessage) => {
-  return (
-    error?.response?.data || {
-      success: false,
-      message: fallbackMessage || error.message,
+/**
+ * ----------------------------------------------------
+ * Create Payment Intent
+ * ----------------------------------------------------
+ * Frontend sends only:
+ *   { showId, seats }
+ *
+ * Backend:
+ *   - validates seats
+ *   - calculates amount
+ *   - creates Stripe PaymentIntent
+ *   - returns clientSecret
+ */
+export const createPaymentIntent = async ({ showId, seats }) => {
+  const response = await axiosInstance.post(
+    "/bookings/createPaymentIntent",
+    {
+      showId,
+      seats,
     }
   );
+
+  return response.data;
 };
 
-export const createPaymentIntent = async (amount) => {
-    try {
-        const response = await axiosInstance.post("/bookings/createPaymentIntent", {
-            amount
-        });
-        return response.data;
-    } catch (error) {
-        return handleError(error, "Failed to create payment intent");
-    }
-};
 
 export const getAllBookings = async () => {
-  try {
-    const response = await axiosInstance.get("/bookings/getAllBookings");
-    return response.data;
-  } catch (error) {
-    return handleError(error, "Failed to fetch bookings");
-  }
+  const response = await axiosInstance.get("/bookings/getAllBookings");
+  return response.data;
 };
 
+
 /**
- * Make payment and book show
- * --------------------------
- * This function calls backend API that:
- * 1. Verifies Stripe payment intent
- * 2. Locks seats atomically
- * 3. Creates booking
+ * ----------------------------------------------------
+ * Make Payment & Finalize Booking
+ * ----------------------------------------------------
+ * Called AFTER Stripe confirms payment on frontend.
+ *
+ * Backend will:
+ *   - verify paymentIntent with Stripe
+ *   - validate metadata (user/show/seats)
+ *   - atomically lock seats
+ *   - create booking record
  */
-export const makePaymentAndBookShow = async (payload) => {
-  try {
-    const response = await axiosInstance.post(
-      "/bookings/makePaymentAndBookShow",
-      payload
-    );
+export const makePaymentAndBookShow = async ({
+  show,
+  seats,
+  paymentIntentId,
+}) => {
+  const response = await axiosInstance.post(
+    "/bookings/makePaymentAndBookShow",
+    {
+      show,
+      seats,
+      paymentIntentId,
+    }
+  );
 
-    // Always return only the backend data
-    return response.data;
-  } catch (error) {
-    /**
-     * Axios wraps server errors inside `error.response`
-     * We re-throw a clean error so calling components
-     * can handle it using try/catch.
-     */
-    const message =
-      error?.response?.data?.message || "Something went wrong during booking";
-
-    throw new Error(message);
-  }
+  return response.data;
 };

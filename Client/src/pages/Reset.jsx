@@ -4,25 +4,24 @@ import { message } from "antd";
 import { ResetPassword } from "../api/user";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../redux/loaderSlice";
+import { mapErrorToMessage } from "../utils/errorMapper";
+
 
 function Reset() {
-
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const onFinish = async (values) => {
     try {
       dispatch(showLoading());
-      const response = await ResetPassword(values);
-      if (response.success) {
-        message.success(response.message);
-        navigate("/login");
-      } else {
-        message.warning(response.message);
-        navigate("/forget");
-      }
+      
+      await ResetPassword(values);
+
+      message.success("Password reset successful");
+      navigate("/login");
+      
     } catch (error) {
-      message.error(error?.message || "Password reset failed");
+      message.error(mapErrorToMessage(error));
     } finally {
       dispatch(hideLoading());
     }
@@ -32,12 +31,13 @@ function Reset() {
   return (
     <>
       <header className="App-header">
-
         <main className="main-area mw-500 text-center px-3">
+
 
           <section className="left-section">
             <h1>Reset Password</h1>
           </section>
+
 
           <section className="right-section">
             <Form layout="vertical" onFinish={onFinish}>
@@ -56,6 +56,7 @@ function Reset() {
                 ></Input>
               </Form.Item>
 
+
               <Form.Item
                 label="Password"
                 htmlFor="password"
@@ -70,6 +71,7 @@ function Reset() {
                 ></Input>
               </Form.Item>
 
+
               <Form.Item className="d-block">
                 <Button
                   type="primary"
@@ -81,11 +83,10 @@ function Reset() {
                 </Button>
               </Form.Item>
             </Form>
-
           </section>
 
+
         </main>
-        
       </header>
     </>
   );

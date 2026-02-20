@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { RegisterUser } from '../api/user';
 import { useEffect } from "react";
 import { GetCurrentUser } from "../api/user";
+import { mapErrorToMessage } from "../utils/errorMapper";
 
 const Register = () => {
   const [messageApi, contextHolder] = message.useMessage();
@@ -13,35 +14,37 @@ const Register = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-  (async () => {
-    const res = await GetCurrentUser();
-    if (res.success) {
-      navigate("/", { replace: true });
-    }
-  })();
-}, []);
+    (async () => {
+      try {
+        await GetCurrentUser();
+        navigate("/", { replace: true });
+      } catch {
+        // Not logged in → stay here
+      }
+    })();
+  }, [navigate]);
 
 
   const onFinish = async (values) => {
     try {
-      const response = await RegisterUser(values);
-      if (response?.success) {
-        messageApi.success(response?.message);
+      await RegisterUser(values);
+      
+      messageApi.success("Registration successful");
+
         // Add delay before navigation
-        setTimeout(() => {
-          navigate("/login");
-        }, 1500);
-      } else {
-        messageApi.warning(response?.message);
-      }
+      setTimeout(() => {
+        navigate("/login");
+      }, 1200);
+     
     } catch (error) {
-      messageApi.error(error?.message || "Registration failed");
+      messageApi.error(mapErrorToMessage(error));
     }
   };
 
   return (
     <div className="App-header">
       {contextHolder}
+
       <main className='main-area mw-500 text-center px-3'>
         <section>
           <h1>Register to BookMyShow</h1>
@@ -49,24 +52,37 @@ const Register = () => {
 
         <section>
           <Form layout="vertical" onFinish={onFinish}>
-            <Form.Item label="Name" htmlFor="name" name="name"
-              className='d-block' rules={[{ required: true, message: "Name is Required" }]}>
+            <Form.Item 
+              label="Name" 
+              htmlFor="name" 
+              name="name"
+              className='d-block'
+              rules={[{ required: true, message: "Name is Required" }]}>
               <Input id="name" type="text" placeholder='Enter you Name' />
             </Form.Item>
 
-            <Form.Item label="Email" htmlFor='email' name="email"
+
+            <Form.Item 
+              label="Email"
+              htmlFor='email' 
+              name="email"
               className='d-block'
               rules={[{ required: true, message: "Email is Required" }]}>
               <Input id='email' type='email'
                 placeholder='Enter your Email'></Input>
             </Form.Item>
 
-            <Form.Item label="Password" htmlFor='password' name="password"
-              className='d-block'
-              rules={[{ required: true, message: "Password is Required" }]}>
-              <Input id='password' type='password'
-                placeholder='Enter your Password'></Input>
+
+            <Form.Item 
+            label="Password" 
+            htmlFor='password' 
+            name="password"
+            className='d-block'
+            rules={[{ required: true, message: "Password is Required" }]}>
+            <Input id='password' type='password'
+              placeholder='Enter your Password'></Input>
             </Form.Item>
+
 
             <Form.Item
               label="Register as a Partner"
@@ -84,9 +100,14 @@ const Register = () => {
               </div>
             </Form.Item>
 
+
             <Form.Item>
-              <Button type="primary" block htmlFor="submit" htmlType='submit'
-                style={{ fontSize: "1rem", fontWeight: "600" }}>
+              <Button 
+                type="primary" 
+                block htmlFor="submit" 
+                htmlType='submit'
+                style={{ fontSize: "1rem", fontWeight: "600" }}
+              >
                 Register
               </Button>
             </Form.Item>

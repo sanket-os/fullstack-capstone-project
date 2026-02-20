@@ -2,6 +2,7 @@ const userModel = require("../models/userSchema");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const emailHelper = require("../utils/emailHelper");
+const AppError = require("../utils/AppError");
 
 /**
  * ----------------------------------------------------
@@ -13,10 +14,7 @@ const registerUser = async (req, res, next) => {
     const userExists = await userModel.findOne({ email: req?.body?.email });
 
     if (userExists) {
-      return res.send({
-        success: false,
-        message: "User Already Exists",
-      });
+      throw new AppError(409, "USER_ALREADY_EXISTS", "User already exists");
     }
 
     // hashing 
@@ -24,7 +22,7 @@ const registerUser = async (req, res, next) => {
     // not literally hashing 1024 times 
 
     const hashedPassword = await bcrypt.hash(req?.body?.password, salt);
-    // console.log("hashed password", hashedPassword);
+
     req.body.password = hashedPassword;
 
     // internally bcrypt uses EksBlowfish key setup algo, applies it to 2^N times
@@ -32,19 +30,17 @@ const registerUser = async (req, res, next) => {
     // uses that state to encrypt const text to produce final hash
 
     const newUser = new userModel(req?.body);
-    // console.log("newUser :", newUser);
+
     await newUser.save(); // Wait for the save operation to complete
     // save will insert document or update the db object 
     // it validates before saving to ensure data type, required fields or custom validation func's
 
-    res.send({
+    res.status(200).json({
       success: true,
       message: "Registration Successful. Please Login.",
     });
 
   } catch (error) {
-    // console.log(error);
-    res.status(400);
     next(error);
   }
 };
@@ -61,10 +57,11 @@ const loginUser = async (req, res, next) => {
       .select("+password");;
 
     if (!user) {
-      return res.send({
-        success: false,
-        message: "User does not exist. Please register",
-      });
+      throw new AppError(
+        401,
+        "INVALID_CREDENTIALS",
+        "User does not exist. Please register"
+      );
     }
 
     const validatePassword = await bcrypt.compare(
@@ -73,14 +70,11 @@ const loginUser = async (req, res, next) => {
     );
 
     if (!validatePassword) {
-      return res.send({
-        success: false,
-        message: "Please enter a valid password",
-      });
+      throw new AppError(401, "INVALID_CREDENTIALS", "Invalid password");
     }
 
     const token = jwt.sign(
-      { userId: user._id, email: user.email },
+      { userId: user._id, email: user.email, role: user.role },
       process.env.SECRET_KEY,
       { expiresIn: "1d" }
     );
@@ -98,15 +92,14 @@ const loginUser = async (req, res, next) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        maxAge: 24 * 60 * 60 * 1000, // 1 day
+        // maxAge: 24 * 60 * 60 * 1000, // 1 day
       })
-      .send({
+      .status(200).json({
         success: true,
         message: "You've successfully Logged In",
       });
 
   } catch (error) {
-    res.status(400);
     next(error);
   }
 };
@@ -149,14 +142,13 @@ const logoutUser = async (req, res, next) => {
  */
 const currentUser = async (req, res, next) => {
   try {
-    const user = await userModel.findById(req.body.userId).select("-password"); // excludes password
+    const user = await userModel.findById(req.user.userId).select("-password"); // excludes password
 
     if (!user) {
-      res.status(404);
-      throw new Error("User not found");
+      throw new AppError(404, "USER_NOT_FOUND", "User not found");
     }
 
-    res.send({
+    res.status(200).json({
       success: true,
       message: "User Details Fetched Successfully",
       data: user,
@@ -175,29 +167,27 @@ const forgetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
 
-    if (email == undefined) {
-      return res.status(401).json({
-        status: "false",
-        message: "Please enter the email",
-      });
+
+    if (!email) {
+      throw new AppError(400, "EMAIL_REQUIRED", "Email is required");
     }
 
     let user = await userModel.findOne({ email: email });
 
-    if (user == null) {
-      return res.status(404).json({
-        status: false,
-        message: "User not found",
-      });
+    if (!user) {
+      throw new AppError(404, "USER_NOT_FOUND", "User not found");
     }
-    else if (user?.otp != undefined && user.otp < user?.otpExpiry) {
-      return res.json({
-        success: false,
-        message: "OTP already sent. Please check your email",
-      });
+    // 🔐 Prevent OTP spam
+    if (user.otp && user.otpExpiry && user.otpExpiry > Date.now()) {
+      throw new AppError(
+        429,
+        "OTP_ALREADY_SENT",
+        "OTP already sent. Please try later"
+      );
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000); // 6-digit OTP
+
     user.otp = otp;
     user.otpExpiry = Date.now() + 10 * 60 * 1000;
 
@@ -208,12 +198,11 @@ const forgetPassword = async (req, res, next) => {
       otp: otp,
     });
 
-    res.send({
+    res.status(200).json({
       success: true,
       message: "OTP has been sent to email",
     });
   } catch (err) {
-    res.status(400);
     next(err);
   }
 };
@@ -227,20 +216,18 @@ const resetPassword = async (req, res, next) => {
   try {
     const { password, otp } = req.body;
 
-    if (password == undefined || otp == undefined) {
-      return res.status(401).json({
-        success: false,
-        message: "Password and OTP are required",
-      });
+    if (!password || !otp) {
+      throw new AppError(
+        400,
+        "INVALID_INPUT",
+        "Password and OTP are required"
+      );
     }
 
     const user = await userModel.findOne({ otp: otp });
 
-    if (user == null) {
-      return res.status(404).json({
-        success: false,
-        message: "Invalid OTP",
-      });
+    if (!user) {
+      throw new AppError(404, "Invalid OTP", "Invalid OTP");
     }
 
     if (Date.now() > user.otpExpiry) {
@@ -249,10 +236,7 @@ const resetPassword = async (req, res, next) => {
 
       await user.save();
 
-      return res.status(401).json({
-        success: false,
-        message: "OTP expired",
-      });
+      throw new AppError(401, "OTP_EXPIRED", "OTP expired");
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -267,12 +251,11 @@ const resetPassword = async (req, res, next) => {
 
     await user.save();
 
-    res.send({
+    res.status(200).json({
       success: true,
       message: "Password reset successful",
     });
   } catch (err) {
-    res.status(400);
     next(err);
   }
 };

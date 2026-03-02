@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { Table, Button, message } from "antd";
+import React, { useEffect, useState, useMemo } from "react";
+import { Table, Button, message, Input, Tag } from "antd";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../../redux/loaderSlice";
 import { getAllTheatresForAdmin, updateTheatre } from "../../api/theatre";
 import { mapErrorToMessage } from "../../utils/errorMapper";
+import { SearchOutlined } from "@ant-design/icons";
 
 
 const TheatreTable = () => {
   const dispatch = useDispatch();
   const [theatres, setTheatres] = useState([]);
+  const [searchText, setSearchText] = useState("");
 
   const getData = async () => {
     try {
@@ -16,12 +18,7 @@ const TheatreTable = () => {
 
       const response = await getAllTheatresForAdmin();
 
-      const allTheatres = response.data;
-      setTheatres(
-        allTheatres.map(function (item) {
-          return { ...item, key: `theatre${item._id}` };
-        }),
-      );
+      setTheatres(response.data);
 
     } catch (error) {
       message.error(mapErrorToMessage(error));
@@ -36,7 +33,6 @@ const TheatreTable = () => {
       dispatch(showLoading());
 
       const values = {
-        ...theatre,
         theatreId: theatre._id,
         isActive: !theatre.isActive,
       };
@@ -57,76 +53,113 @@ const TheatreTable = () => {
       dispatch(hideLoading());
     }
   };
-  
-
-  const columns = [
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "Address",
-      dataIndex: "address",
-      key: "address",
-    },
-    {
-      title: "Owner",
-      dataIndex: "owner",
-      render: (_, data) => {
-        return data.owner && data.owner.name;
-      },
-    },
-    {
-      title: "Phone Number",
-      dataIndex: "phone",
-      key: "phone",
-    },
-    {
-      title: "Email",
-      dataIndex: "email",
-      key: "email",
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      render: (_, data) => {
-        if (data.isActive) {
-          return "Approved";
-        } else {
-          return "Pending/ Blocked";
-        }
-      },
-    },
-    {
-      title: "Action",
-      dataIndex: "action",
-      render: (_, data) => {
-        return (
-          <div className="d-flex align-items-center gap-10">
-            {data.isActive ? (
-              <Button onClick={() => handleStatusChange(data)}>Block</Button>
-            ) : (
-              <Button onClick={() => handleStatusChange(data)}>Approve</Button>
-            )}
-          </div>
-        );
-      },
-    },
-  ];
 
 
   useEffect(() => {
     getData();
   }, []);
-  
+
+  /* ================= SEARCH FILTER ================= */
+  const filteredTheatres = useMemo(() => {
+    return theatres.filter((theatre) =>
+      theatre.name.toLowerCase().includes(searchText.toLowerCase())
+    );
+  }, [theatres, searchText]);
+
+
+  /* ================= TABLE COLUMNS ================= */
+  const columns = [
+    {
+      title: "Name",
+      dataIndex: "name",
+      render: (text) => (
+        <span style={{ fontWeight: 500 }}>{text}</span>
+      ),
+    },
+    {
+      title: "Owner",
+      dataIndex: "owner",
+      render: (_, data) => (
+        <div>
+          <div style={{ fontWeight: 500 }}>
+            {data.owner?.name}
+          </div>
+          <div style={{ fontSize: 12, color: "#6b7280" }}>
+            {data.email}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "Phone",
+      dataIndex: "phone",
+      width: 140,
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      width: 160,
+      render: (_, data) =>
+        data.isActive ? (
+          <Tag color="green">Approved</Tag>
+        ) : (
+          <Tag color="orange">Pending / Blocked</Tag>
+        ),
+    },
+    {
+      title: "Actions",
+      width: 140,
+      render: (_, data) => (
+        <Button
+          type={data.isActive ? "default" : "primary"}
+          danger={data.isActive}
+          size="small"
+          onClick={() => handleStatusChange(data)}
+        >
+          {data.isActive ? "Block" : "Approve"}
+        </Button>
+      ),
+    },
+  ];
 
   return (
-    <div>
-      <Table rowKey="_id" dataSource={theatres} columns={columns} />
+    <div
+      style={{
+        background: "#ffffff",
+        padding: "var(--space-5)",
+        borderRadius: 12,
+        border: "1px solid #e5e7eb",
+      }}
+    >
+      {/* ===== HEADER ===== */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          marginBottom: "var(--space-4)",
+        }}
+      >
+        <Input
+          placeholder="Search theatres..."
+          prefix={<SearchOutlined />}
+          style={{ width: 260 }}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+      </div>
+
+      {/* ===== TABLE ===== */}
+      <Table
+        rowKey="_id"
+        columns={columns}
+        dataSource={filteredTheatres}
+        pagination={{
+          pageSize: 6,
+          showSizeChanger: false,
+        }}
+      />
     </div>
   );
 };
-
 
 export default TheatreTable;

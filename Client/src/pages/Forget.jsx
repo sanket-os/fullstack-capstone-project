@@ -1,5 +1,5 @@
 import { useNavigate, Link } from "react-router-dom";
-import { Button, Form, Input, message } from "antd";
+import { Button, Form, Input, message, Card } from "antd";
 import { ForgetPassword } from "../api/user";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../redux/loaderSlice";
@@ -8,6 +8,7 @@ import { mapErrorToMessage } from "../utils/errorMapper";
 const Forget = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [messageApi, contextHolder] = message.useMessage();
 
   const onFinish = async (values) => {
     try {
@@ -15,9 +16,11 @@ const Forget = () => {
      
       await ForgetPassword(values);
       
-      message.success("OTP sent to your email");
+      messageApi.success("OTP sent to your email");
         // alert("OTP sent to your email");
-      navigate("/reset");
+      setTimeout(() => {
+        navigate("/reset");
+      }, 800);
        
       
     } catch (error) {
@@ -37,54 +40,71 @@ const Forget = () => {
     }
   };
 
+  
   return (
-    <>
-      <header className="App-header">
-        <main className="main-area mw-500 text-center px-3">
-          <section className="left-section">
-            <h1>Forget Password</h1>
-          </section>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "var(--space-5)",
+        background: "var(--bg-light)",
+      }}
+    >
+      {contextHolder}
 
+      <Card
+        bordered={false}
+        style={{
+          width: 420,
+          borderRadius: 16,
+        }}
+      >
+        <div style={{ marginBottom: "var(--space-5)", textAlign: "center" }}>
+          <h2 style={{ marginBottom: 4 }}>Forgot Password</h2>
+          <p style={{ margin: 0 }}>
+            Enter your email to receive an OTP
+          </p>
+        </div>
 
-          <section className="right-section">
-            <Form layout="vertical" onFinish={onFinish}>
-              <Form.Item
-                label="Email"
-                htmlFor="email"
-                name="email"
-                className="d-block"
-                rules={[{ required: true, message: "Email is required" }]}
-              >
-                <Input
-                  id="email"
-                  type="text"
-                  placeholder="Enter your Email"
-                ></Input>
-              </Form.Item>
+        <Form layout="vertical" onFinish={onFinish}>
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[{ required: true, message: "Email is required" }]}
+          >
+            <Input
+              size="large"
+              type="email"
+              placeholder="Enter your email"
+            />
+          </Form.Item>
 
+          <Form.Item style={{ marginTop: "var(--space-4)" }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              block
+            >
+              Send OTP
+            </Button>
+          </Form.Item>
+        </Form>
 
-              <Form.Item className="d-block">
-                <Button
-                  type="primary"
-                  block
-                  htmlType="submit"
-                  style={{ fontSize: "1rem", fontWeight: "600" }}
-                >
-                  SEND OTP
-                </Button>
-              </Form.Item>
-            </Form>
-
-
-            <div>
-              <p>
-                Existing User? <Link to="/login">Login Here</Link>
-              </p>
-            </div>
-          </section>
-        </main>
-      </header>
-    </>
+        <div
+          style={{
+            marginTop: "var(--space-4)",
+            textAlign: "center",
+            fontSize: 14,
+          }}
+        >
+          Remember your password?{" "}
+          <Link to="/login">Login</Link>
+        </div>
+      </Card>
+    </div>
   );
 };
 

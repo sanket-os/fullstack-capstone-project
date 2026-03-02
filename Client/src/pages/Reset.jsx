@@ -1,4 +1,4 @@
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, Card } from "antd";
 import { useNavigate } from "react-router-dom";
 import { message } from "antd";
 import { ResetPassword } from "../api/user";
@@ -18,7 +18,11 @@ function Reset() {
       await ResetPassword(values);
 
       message.success("Password reset successful");
-      navigate("/login");
+
+      setTimeout(() => {
+        navigate("/login", { replace: true });
+      }, 800);
+
       
     } catch (error) {
       message.error(mapErrorToMessage(error));
@@ -28,68 +32,70 @@ function Reset() {
   };
   
 
-  return (
-    <>
-      <header className="App-header">
-        <main className="main-area mw-500 text-center px-3">
+   return (
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "var(--space-5)",
+        background: "var(--bg-light)",
+      }}
+    >
+      <Card
+        bordered={false}
+        style={{
+          width: 420,
+          borderRadius: 16,
+        }}
+      >
+        <div style={{ marginBottom: "var(--space-5)", textAlign: "center" }}>
+          <h2 style={{ marginBottom: 4 }}>Reset Password</h2>
+          <p style={{ margin: 0 }}>
+            Enter the OTP sent to your email and choose a new password
+          </p>
+        </div>
 
+        <Form layout="vertical" onFinish={onFinish}>
+          <Form.Item
+            label="OTP"
+            name="otp"
+            rules={[{ required: true, message: "OTP is required" }]}
+          >
+            <Input
+              size="large"
+              inputMode="numeric"
+              placeholder="Enter your OTP"
+            />
+          </Form.Item>
 
-          <section className="left-section">
-            <h1>Reset Password</h1>
-          </section>
+          <Form.Item
+            label="New Password"
+            name="password"
+            rules={[{ required: true, message: "Password is required" }]}
+          >
+            <Input.Password
+              size="large"
+              placeholder="Enter new password"
+            />
+          </Form.Item>
 
-
-          <section className="right-section">
-            <Form layout="vertical" onFinish={onFinish}>
-              <Form.Item
-                label="OTP"
-                htmlFor="otp"
-                name="otp"
-                className="d-block"
-                rules={[{ required: true, message: "OTP is required" }]}
-              >
-                <Input
-                  id="otp"
-                  type="text" 
-                  inputMode="numeric"
-                  placeholder="Enter your otp"
-                ></Input>
-              </Form.Item>
-
-
-              <Form.Item
-                label="Password"
-                htmlFor="password"
-                name="password"
-                className="d-block"
-                rules={[{ required: true, message: "Password is required" }]}
-              >
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your Password"
-                ></Input>
-              </Form.Item>
-
-
-              <Form.Item className="d-block">
-                <Button
-                  type="primary"
-                  block
-                  htmlType="submit"
-                  style={{ fontSize: "1rem", fontWeight: "600" }}
-                >
-                  RESET PASSWORD
-                </Button>
-              </Form.Item>
-            </Form>
-          </section>
-
-
-        </main>
-      </header>
-    </>
+          <Form.Item style={{ marginTop: "var(--space-4)" }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              block
+            >
+              Reset Password
+            </Button>
+          </Form.Item>
+        </Form>
+      </Card>
+    </div>
   );
 }
+
 
 export default Reset;

@@ -1,7 +1,382 @@
+/* =========================================
+   DESIGN SYSTEM — GLOBAL FOUNDATION
+========================================= */
+
+:root {
+  /* 8px Spacing System */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 40px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* Color Palette */
+  --primary: #2563eb;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --border: #e5e7eb;
+  --bg-light: #f8fafc;
+  --success: #16a34a;
+  --danger: #dc2626;
+}
+
+/* Reset */
 * {
-  margin: 0px;
-  padding: 0px;
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
+}
+
+/* =========================================
+   GLOBAL TYPOGRAPHY
+========================================= */
+
+body {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  line-height: 1.6;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings */
+
+h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: var(--space-3);
+}
+
+h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: var(--space-3);
+}
+
+h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: var(--space-2);
+}
+
+p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+/* =========================================
+   LAYOUT UTILITIES
+========================================= */
+
+.d-flex { display: flex; }
+.flex-1 { flex: 1; }
+.flex-shrink-0 { flex-shrink: 0; }
+.text-center { text-align: center; }
+.cursor-pointer { cursor: pointer; }
+.w-100 { width: 100%; }
+.mx-auto { margin-inline: auto; }
+
+.inner-container {
+  max-width: 1000px;
+  margin-inline: auto;
+  padding-inline: var(--space-3);
+}
+
+.max-width-300 { max-width: 300px; }
+.max-width-600 { max-width: 600px; }
+
+.gap-10 { gap: var(--space-2); }
+
+.mt-3 { margin-top: var(--space-3); }
+.mb-3 { margin-bottom: var(--space-3); }
+.mb-5 { margin-bottom: var(--space-5); }
+
+/* =========================================
+   ANT DESIGN REFINEMENT
+========================================= */
+
+.ant-card {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.ant-card-body {
+  padding: var(--space-4);
+}
+
+.ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.ant-btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.ant-btn-primary:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.ant-form-item {
+  margin-bottom: var(--space-4);
+}
+
+.ant-menu-item:hover {
+  color: var(--primary) !important;
+}
+
+/* =========================================
+   MOVIE CARD
+========================================= */
+
+.movie-poster {
+  transition: transform 0.25s ease;
+  border-radius: 8px;
+}
+
+.movie-poster:hover {
+  transform: translateY(-4px);
+}
+
+/* =========================================
+   SHOW TIME BUTTONS
+========================================= */
+
+.show-ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 0;
+}
+
+.show-ul li {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--primary);
+  transition: all 0.2s ease;
+}
+
+.show-ul li:hover {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* =========================================
+   SEAT GRID (MODERN)
+========================================= */
+
+.screen-div {
+  height: 6px;
+  width: 60%;
+  margin: 0 auto var(--space-5) auto;
+  background: linear-gradient(to right, #ddd, #bbb, #ddd);
+  border-radius: 50px;
+}
+
+.seat-ul {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--space-2);
+  padding: 0;
+  margin: var(--space-5) 0;
+}
+
+.seat {
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.seat:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.seat-selected {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.seat-booked {
+  background-color: #f3f4f6;
+  border-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Seat Legend */
+
+.seat-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  margin-right: var(--space-2);
+}
+
+.available {
+  background-color: #ffffff;
+  border: 1px solid var(--border);
+}
+
+.selected {
+  background-color: var(--primary);
+}
+
+.booked {
+  background-color: #e5e7eb;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* =========================================
+   LOADER
+========================================= */
+
+.loader-container {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0,0,0,0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loader {
+  border: 6px solid #e5e7eb;
+  border-top: 6px solid var(--primary);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 768px) {
+  .seat-ul {
+    grid-template-columns: repeat(8, 1fr);
+  }
+
+  .inner-container {
+    padding-inline: var(--space-3);
+  }
+}
+
+
+.fade-step {
+  animation: fadeIn 0.35s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
 }
 
 .App-logo {
@@ -231,10 +606,11 @@ hr {
   cursor: not-allowed;
 }
 .screen-div {
-  max-width: 75%;
-  margin-inline: auto;
-  height: 10px;
-  background-color: #eee;
+  height: 6px;
+  width: 60%;
+  margin: 0 auto 30px auto;
+  background: linear-gradient(to right, #ddd, #bbb, #ddd);
+  border-radius: 50px;
 }
 .bottom-card {
   padding: 1rem;
@@ -257,7 +633,7 @@ hr {
   padding-inline: 1rem;
 }
 
-/* Loader */
+Loader
 .loader-container {
   position: fixed;
   top: 0;
@@ -276,7 +652,7 @@ hr {
   border-top: 16px solid #3498db;
   width: 120px;
   height: 120px;
-  -webkit-animation: spin 2s linear infinite; /* Safari */
+  -webkit-animation: spin 2s linear infinite; 
   animation: spin 2s linear infinite;
 }
 .ant-table-content {
@@ -300,7 +676,7 @@ hr {
     transform: rotate(360deg);
   }
 }
-/* Loader Ends here */
+Loader Ends here
 
 @media screen and (min-width: 768px) {
   .site-layout {
@@ -334,3 +710,152 @@ hr {
     margin-bottom: 1rem;
   }
 }
+
+.seat-box {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+  border-radius: 3px;
+}
+
+.available {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+}
+
+.selected {
+  background-color: #02a802;
+}
+
+.booked {
+  background-color: #ddd;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #555;
+}
+
+
+
+===== SEAT GRID =====
+
+.seat-ul {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 10px;
+  padding: 0;
+  margin: 30px 0;
+}
+
+.seat {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 6px;
+  border: 1px solid #e5e5e5;
+  background-color: #fafafa;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+}
+
+.seat:hover {
+  border-color: #02a802;
+  transform: translateY(-2px);
+}
+
+.seat-selected {
+  background-color: #02a802;
+  border-color: #02a802;
+  color: white;
+  transform: scale(1.05);
+}
+
+.seat-booked {
+  background-color: #f5f5f5;
+  border-color: #ddd;
+  color: #bbb;
+  cursor: not-allowed;
+}
+
+.ant-menu-item:hover {
+  color: #1677ff !important;
+}
+
+
+===== Global Typography =====
+
+body,
+.ant-typography,
+.ant-btn,
+.ant-input,
+.ant-menu,
+.ant-card,
+.ant-modal {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  color: #111827;
+  background-color: #f8fafc;
+  line-height: 1.6;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+Headings
+
+h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+p {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+
+.ant-card {
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+
+.ant-btn-primary {
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.ant-btn {
+  border-radius: 8px;
+}
+
+8px 
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 40px;
+  --space-7: 48px;
+  --space-8: 64px;
+} */

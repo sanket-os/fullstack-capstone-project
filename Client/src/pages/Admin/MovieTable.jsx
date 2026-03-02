@@ -1,17 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import moment from "moment";
-import { Button, message, Table } from "antd";
+import { Button, message, Table, Input, Tag } from "antd";
 import { useDispatch } from 'react-redux';
 import { hideLoading, showLoading } from '../../redux/loaderSlice';
 import { getAllMovies } from "../../api/movie";
 import MovieForm from './MovieForm';
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import DeleteMovieModal from './DeleteMovieModal';
 import { mapErrorToMessage } from "../../utils/errorMapper";
 
 
 const MovieTable = () => {
     const [movies, setMovies] = useState([]);
+    const [searchText, setSearchText] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedMovie, setSelectedMovie] = useState(null);
@@ -19,100 +20,7 @@ const MovieTable = () => {
 
     const dispatch = useDispatch();
 
-    const tableHeadings = [
-        {
-            key: "poster",
-            title: "Poster",
-            dataIndex: "poster",
-            render: (_, data) => {
-                return (
-                    <img
-                        src={data?.poster}
-                        alt="Movie Poster"
-                        style={{ objectFit: "cover", borderRadius: "4px" }}
-                        width="75"
-                        height="115"
-                    />
-                );
-            },
-        },
-
-        {
-            title: "Movie Name",
-            dataIndex: "movieName",
-        },
-
-        {
-            title: "Description",
-            dataIndex: "description",
-        },
-
-        {
-            title: "Duration",
-            dataIndex: "duration",
-            render: (text) => {
-                return `${text} Min`;
-            },
-        },
-
-        {
-            title: "Genre",
-            dataIndex: "genre",
-            render: (genres) => genres.join(", "),
-        },
-
-        {
-            title: "Language",
-            dataIndex: "language",
-            render: (langs) => langs.join(", "),
-        },
-
-        {
-            title: "Release Date",
-            dataIndex: "releaseDate",
-            render: (_, data) => {
-                return moment(data.releaseDate).format("MM-DD-YYYY");
-            },
-        },
-        {
-            title: "Actions",
-            render: (_, data) => {
-                return (
-                    <div className='d-flex gap-10'>
-                        <Button
-                            onClick={() => {
-                                // IMPORTANT: clone before modifying (no mutation)
-                                const movieForEdit = {
-                                    ...data,
-                                    releaseDate: moment(data.releaseDate).format("YYYY-MM-DD"),
-                                };
-
-
-                                setSelectedMovie(movieForEdit);
-                                setFormType("edit");
-                                setIsModalOpen(true);
-                            }}
-                        >
-                            <EditOutlined />
-                        </Button>
-
-
-                        <Button
-                            danger
-                            onClick={() => {
-                                setIsDeleteModalOpen(true);
-                                setSelectedMovie(data);
-                            }}
-                        >
-                            <DeleteOutlined />
-                        </Button>
-                    </div>
-                );
-            },
-        },
-    ];
-
-    const getData = async () => {
+        const getData = async () => {
         try {
             dispatch(showLoading());
 
@@ -130,49 +38,180 @@ const MovieTable = () => {
         getData();
     }, []);
 
-
-
-    return (
-        <div style={{ borderRadius: "8px", padding: "5px" }}>
-            <div className='d-flex justify-content-end mb-3'>
-                <Button
-                    onClick={() => {
-                        setFormType("add");
-                        setSelectedMovie(null);
-                        setIsModalOpen(true);
-                    }}
-                >
-                    Add Movie
-                </Button>
-            </div>
-
-
-            <Table rowKey="_id" columns={tableHeadings} dataSource={movies} />
-
-
-            {isModalOpen && (
-                <MovieForm
-                    isModalOpen={isModalOpen}
-                    setIsModalOpen={setIsModalOpen}
-                    FetchMovieData={getData}
-                    formType={formType}
-                    selectedMovie={selectedMovie}
-                    setSelectedMovie={setSelectedMovie}
-                />
-            )}
-            
-
-            {isDeleteModalOpen && (
-                <DeleteMovieModal
-                    isDeleteModalOpen={isDeleteModalOpen}
-                    setIsDeleteModalOpen={setIsDeleteModalOpen}
-                    selectedMovie={selectedMovie}
-                    setSelectedMovie={setSelectedMovie}
-                    FetchMovieData={getData}
-                />
-            )}
-        </div>
+      /* ================= SEARCH FILTER ================= */
+  const filteredMovies = useMemo(() => {
+    return movies.filter((movie) =>
+      movie.movieName
+        .toLowerCase()
+        .includes(searchText.toLowerCase())
     );
-}
+  }, [movies, searchText]);
+
+   
+ /* ================= TABLE COLUMNS ================= */
+  const columns = [
+    {
+      key: "poster",
+      title: "Poster",
+      dataIndex: "poster",
+      width: 110,
+      render: (_, data) => (
+        <img
+          src={data?.poster}
+          alt="Poster"
+          style={{
+            objectFit: "cover",
+            borderRadius: 8,
+          }}
+          width="70"
+          height="100"
+        />
+      ),
+    },
+    {
+      title: "Movie Name",
+      dataIndex: "movieName",
+      render: (text) => (
+        <span style={{ fontWeight: 500 }}>{text}</span>
+      ),
+    },
+    {
+      title: "Duration",
+      dataIndex: "duration",
+      width: 120,
+      render: (text) => `${text} min`,
+    },
+    {
+      title: "Genre",
+      dataIndex: "genre",
+      render: (genres) =>
+        genres?.map((g, index) => (
+          <Tag key={index}>{g}</Tag>
+        )),
+    },
+    {
+      title: "Language",
+      dataIndex: "language",
+      render: (langs) =>
+        langs?.map((l, index) => (
+          <Tag key={index} color="blue">
+            {l}
+          </Tag>
+        )),
+    },
+    {
+      title: "Release Date",
+      dataIndex: "releaseDate",
+      width: 140,
+      render: (_, data) =>
+        moment(data.releaseDate).format("MMM DD, YYYY"),
+    },
+    {
+      title: "Actions",
+      width: 120,
+      render: (_, data) => (
+        <div style={{ display: "flex", gap: 8 }}>
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => {
+              const movieForEdit = {
+                ...data,
+                releaseDate: moment(data.releaseDate).format("YYYY-MM-DD"),
+              };
+              setSelectedMovie(movieForEdit);
+              setFormType("edit");
+              setIsModalOpen(true);
+            }}
+          />
+
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => {
+              setIsDeleteModalOpen(true);
+              setSelectedMovie(data);
+            }}
+          />
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        background: "#ffffff",
+        padding: "var(--space-5)",
+        borderRadius: 12,
+        border: "1px solid #e5e7eb",
+      }}
+    >
+      {/* ===== HEADER BAR ===== */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "var(--space-4)",
+        }}
+      >
+        <Input
+          placeholder="Search movies..."
+          prefix={<SearchOutlined />}
+          style={{ width: 260 }}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => {
+            setFormType("add");
+            setSelectedMovie(null);
+            setIsModalOpen(true);
+          }}
+        >
+          Add Movie
+        </Button>
+      </div>
+
+      {/* ===== TABLE ===== */}
+      <Table
+        rowKey="_id"
+        columns={columns}
+        dataSource={filteredMovies}
+        pagination={{
+          pageSize: 6,
+          showSizeChanger: false,
+        }}
+      />
+
+      {/* ===== MODALS ===== */}
+      {isModalOpen && (
+        <MovieForm
+          isModalOpen={isModalOpen}
+          setIsModalOpen={setIsModalOpen}
+          FetchMovieData={getData}
+          formType={formType}
+          selectedMovie={selectedMovie}
+          setSelectedMovie={setSelectedMovie}
+        />
+      )}
+
+      {isDeleteModalOpen && (
+        <DeleteMovieModal
+          isDeleteModalOpen={isDeleteModalOpen}
+          setIsDeleteModalOpen={setIsDeleteModalOpen}
+          selectedMovie={selectedMovie}
+          setSelectedMovie={setSelectedMovie}
+          FetchMovieData={getData}
+        />
+      )}
+    </div>
+  );
+};
 
 export default MovieTable;

@@ -1,415 +1,317 @@
 import {
-    Col,
-    Modal,
-    Row,
-    Form,
-    Input,
-    Button,
-    Select,
-    Table,
-    message,
+  Col,
+  Modal,
+  Row,
+  Form,
+  Input,
+  Button,
+  Select,
+  Table,
+  message,
+  Typography,
 } from "antd";
 import { useEffect, useState } from "react";
 import moment from "moment";
 import {
-    addShow,
-    deleteShow,
-    getAllShowsByTheatre,
-    updateShow,
+  addShow,
+  deleteShow,
+  getAllShowsByTheatre,
+  updateShow,
 } from "../../api/show";
 import { useDispatch } from "react-redux";
 import { getAllMovies } from "../../api/movie";
 import { hideLoading, showLoading } from "../../redux/loaderSlice";
-import { ArrowLeftOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import {
+  ArrowLeftOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import { mapErrorToMessage } from "../../utils/errorMapper";
 
+const { Title, Text } = Typography;
 
 const ShowModal = ({
-    isShowModalOpen,
-    setIsShowModalOpen,
-    selectedTheatre,
-    setSelectedTheatre,
+  isShowModalOpen,
+  setIsShowModalOpen,
+  selectedTheatre,
+  setSelectedTheatre,
 }) => {
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
+  const [view, setView] = useState("table");
+  const [shows, setShows] = useState([]);
+  const [selectedShow, setSelectedShow] = useState(null);
+  const [movies, setMovies] = useState([]);
 
-    const [view, setView] = useState("table");
-    const [shows, setShows] = useState([]);
-    const [selectedShow, setSelectedShow] = useState(null);
-    const [movies, setMovies] = useState([]);
+  const handleCancel = () => {
+    setIsShowModalOpen(false);
+    setSelectedTheatre(null);
+    setView("table");
+    setSelectedShow(null);
+  };
 
+  const getData = async () => {
+    try {
+      dispatch(showLoading());
 
-    const handleCancel = () => {
-        setIsShowModalOpen(false);
-        setSelectedTheatre(null);
-        setView("table");
-        setSelectedShow(null);
-    };
+      const movieResponse = await getAllMovies();
+      setMovies(movieResponse.data);
 
+      const showResponse = await getAllShowsByTheatre({
+        theatreId: selectedTheatre._id,
+      });
+      setShows(showResponse.data);
+    } catch (error) {
+      message.error(mapErrorToMessage(error));
+    } finally {
+      dispatch(hideLoading());
+    }
+  };
 
-    const getData = async () => {
-        try {
-            dispatch(showLoading());
+  const onFinish = async (values) => {
+    try {
+      dispatch(showLoading());
 
-            const movieResponse = await getAllMovies();
-            setMovies(movieResponse.data);
-         
-            const showResponse = await getAllShowsByTheatre({
-                theatreId: selectedTheatre._id,
-            });
-            setShows(showResponse.data);
-          
-        } catch (error) {
-            message.error(mapErrorToMessage(error));
-        } finally {
-            dispatch(hideLoading());
-        }
-    };
+      const payload = {
+        ...values,
+        theatre: selectedTheatre._id,
+        ticketPrice: Number(values.ticketPrice),
+        totalSeats: Number(values.totalSeats),
+      };
 
+      if (view === "add") {
+        await addShow(payload);
+        message.success("Show added successfully");
+      } else {
+        await updateShow({
+          ...payload,
+          showId: selectedShow._id,
+        });
+        message.success("Show updated successfully");
+      }
 
-    const onFinish = async (values) => {
-        try {
-            dispatch(showLoading());
+      setView("table");
+      getData();
+    } catch (error) {
+      message.error(mapErrorToMessage(error));
+    } finally {
+      dispatch(hideLoading());
+    }
+  };
 
-            if (view === "add") {
-                await addShow({
-                    ...values, theatre: selectedTheatre._id, ticketPrice: Number(values.ticketPrice),
-                    totalSeats: Number(values.totalSeats),
-                });
+  const handleDelete = async (showId) => {
+    try {
+      dispatch(showLoading());
+      await deleteShow({ showId });
+      message.success("Show deleted successfully");
+      getData();
+    } catch (error) {
+      message.error(mapErrorToMessage(error));
+    } finally {
+      dispatch(hideLoading());
+    }
+  };
 
-                message.success("Show added successfully");
-            } else {
-                await updateShow({
-                    ...values,
-                    showId: selectedShow._id,
-                    theatre: selectedTheatre._id,
-                });
+  const columns = [
+    {
+      title: "Show",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Date",
+      dataIndex: "date",
+      render: (date) => moment(date).format("MMM DD, YYYY"),
+    },
+    {
+      title: "Time",
+      dataIndex: "time",
+      render: (time) => moment(time, "HH:mm").format("hh:mm A"),
+    },
+    {
+      title: "Movie",
+      dataIndex: "movie",
+      render: (_, data) => data.movie.movieName,
+    },
+    {
+      title: "Price",
+      dataIndex: "ticketPrice",
+      render: (price) => `₹${price}`,
+    },
+    {
+      title: "Seats",
+      render: (_, data) =>
+        `${data.totalSeats - data.bookedSeats.length} / ${data.totalSeats}`,
+    },
+    {
+      title: "Actions",
+      render: (_, data) => (
+        <div style={{ display: "flex", gap: 8 }}>
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => {
+              setView("edit");
+              setSelectedShow({
+                ...data,
+                date: moment(data.date).format("YYYY-MM-DD"),
+                movie: data.movie._id,
+              });
+            }}
+          />
+          <Button
+            danger
+            type="text"
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(data._id)}
+          />
+        </div>
+      ),
+    },
+  ];
 
-                message.success("Show updated successfully")
-            }
-                
-            setView("table");
-            getData();
-       
-        } catch (error) {
-            message.error(mapErrorToMessage(error));
-        } finally {
-            dispatch(hideLoading());
-        }
-    };
+  useEffect(() => {
+    if (selectedTheatre?._id) {
+      getData();
+    }
+  }, [selectedTheatre]);
 
+  return (
+    <Modal
+      centered
+      open={isShowModalOpen}
+      onCancel={handleCancel}
+      width={1100}
+      footer={null}
+    >
+      {/* HEADER */}
+      <div style={{ marginBottom: "var(--space-5)" }}>
+        <Title level={4} style={{ marginBottom: 4 }}>
+          {selectedTheatre?.name}
+        </Title>
+        <Text type="secondary">
+          {view === "table"
+            ? "Manage show schedules"
+            : view === "add"
+            ? "Create a new show"
+            : "Update show details"}
+        </Text>
+      </div>
 
-    const handleDelete = async (showId) => {
-        try {
-            dispatch(showLoading());
+      {/* TABLE VIEW */}
+      {view === "table" && (
+        <>
+          <div style={{ marginBottom: "var(--space-4)", textAlign: "right" }}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setView("add")}
+            >
+              Add Show
+            </Button>
+          </div>
 
-            await deleteShow({ showId: showId });
+          <Table
+            rowKey="_id"
+            columns={columns}
+            dataSource={shows}
+            bordered
+            pagination={{ pageSize: 6 }}
+          />
+        </>
+      )}
 
-            message.success("Show deleted successfully");
-            getData();
-           
-        } catch (error) {
-            message.error(mapErrorToMessage(error));
-        } finally {
-            dispatch(hideLoading());
-        }
-    };
-
-
-    const columns = [
-        {
-            title: "Show Name",
-            dataIndex: "name",
-            key: "name",
-        },
-        {
-            title: "Show Date",
-            dataIndex: "date",
-            render: (date) => {
-                return moment(date).format("MMM Do YYYY");
-            },
-        },
-        {
-            title: "Show Time",
-            dataIndex: "time",
-            render: (time) => {
-                return moment(time, "HH:mm").format("hh:mm A");
-            },
-        },
-        {
-            title: "Movie",
-            dataIndex: "movie",
-            render: (_, data) => {
-                return data.movie.movieName;
-            },
-        },
-        {
-            title: "Ticket Price",
-            dataIndex: "ticketPrice",
-            key: "ticketPrice",
-        },
-        {
-            title: "Total Seats",
-            dataIndex: "totalSeats",
-            key: "totalSeats",
-        },
-        {
-            title: "Available Seats",
-            dataIndex: "seats",
-            render: (_, data) => {
-                return data.totalSeats - data.bookedSeats.length;
-            },
-        },
-        {
-            title: "Action",
-            dataIndex: "action",
-            render: (_, data) => {
-                return (
-                    <div className="d-flex align-items-center gap-10">
-                        <Button
-                            onClick={() => {
-                                setView("edit");
-                                setSelectedShow({
-                                    ...data,
-                                    date: moment(data.date).format("YYYY-MM-DD"),
-                                    movie: data.movie._id,
-                                });
-                            }}
-                        >
-                            <EditOutlined />
-                        </Button>
-
-
-                        <Button onClick={() => handleDelete(data._id)}>
-                            <DeleteOutlined />
-                        </Button>
-                        {data.isActive && <Button onClick={() => { }}>+Shows</Button>}
-                    </div>
-                );
-            },
-        },
-    ];
-
-
-    useEffect(() => {
-        if (selectedTheatre?._id) {
-            getData();
-        }
-    }, [selectedTheatre]);
-
-
-    return (
-        <Modal
-            centered
-            title={selectedTheatre.name}
-            open={isShowModalOpen}
-            onCancel={handleCancel}
-            width={1200}
-            footer={null}
+      {/* FORM VIEW */}
+      {(view === "add" || view === "edit") && (
+        <Form
+          layout="vertical"
+          initialValues={view === "edit" ? selectedShow : null}
+          onFinish={onFinish}
         >
-            <div className="d-flex justify-content-between">
-                <h3>
-                    {view === "table"
-                        ? "List of Shows"
-                        : view === "add"
-                            ? "Add Show"
-                            : "Edit Show"}
-                </h3>
+          <Row gutter={24}>
+            <Col span={8}>
+              <Form.Item
+                label="Show Name"
+                name="name"
+                rules={[{ required: true }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
 
+            <Col span={8}>
+              <Form.Item
+                label="Date"
+                name="date"
+                rules={[{ required: true }]}
+              >
+                <Input type="date" />
+              </Form.Item>
+            </Col>
 
-                {view === "table" && (
-                    <Button type="primary" onClick={() => setView("add")}>
-                        Add Show
-                    </Button>
-                )}
-            </div>
+            <Col span={8}>
+              <Form.Item
+                label="Time"
+                name="time"
+                rules={[{ required: true }]}
+              >
+                <Input type="time" />
+              </Form.Item>
+            </Col>
 
+            <Col span={8}>
+              <Form.Item
+                label="Movie"
+                name="movie"
+                rules={[{ required: true }]}
+              >
+                <Select
+                  options={movies.map((movie) => ({
+                    value: movie._id,
+                    label: movie.movieName,
+                  }))}
+                />
+              </Form.Item>
+            </Col>
 
-            {view === "table" && <Table dataSource={shows} columns={columns}
-            />}
+            <Col span={8}>
+              <Form.Item
+                label="Ticket Price"
+                name="ticketPrice"
+                rules={[{ required: true }]}
+              >
+                <Input type="number" />
+              </Form.Item>
+            </Col>
 
+            <Col span={8}>
+              <Form.Item
+                label="Total Seats"
+                name="totalSeats"
+                rules={[{ required: true }]}
+              >
+                <Input type="number" />
+              </Form.Item>
+            </Col>
+          </Row>
 
-            {(view === "add" || view === "edit") && (
-                <Form
-                    layout="vertical"
-                    style={{ width: "100%" }}
-                    initialValues={view === "edit" ? selectedShow : null}
-                    onFinish={onFinish}
-                >
-                    <Row
-                        gutter={{
-                            xs: 6,
-                            sm: 10,
-                            md: 12,
-                            lg: 16,
-                        }}
-                    >
-                        <Col span={24}>
-                            <Row
-                                gutter={{
-                                    xs: 6,
-                                    sm: 10,
-                                    md: 12,
-                                    lg: 16,
-                                }}
-                            >
-                                <Col span={8}>
-                                    <Form.Item
-                                        label="Show Name"
-                                        htmlFor="name"
-                                        name="name"
-                                        className="d-block"
-                                        rules={[
-                                            { required: true, message: "Show name is required!" },
-                                        ]}
-                                    >
-                                        <Input
-                                            id="name"
-                                            type="text"
-                                            placeholder="Enter the show name"
-                                        ></Input>
-                                    </Form.Item>
-                                </Col>
+          <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
+            <Button
+              icon={<ArrowLeftOutlined />}
+              onClick={() => setView("table")}
+            >
+              Back
+            </Button>
 
-
-                                <Col span={8}>
-                                    <Form.Item
-                                        label="Show Date"
-                                        htmlFor="date"
-                                        name="date"
-                                        className="d-block"
-                                        rules={[
-                                            { required: true, message: "Show date is required!" },
-                                        ]}
-                                    >
-                                        <Input
-                                            id="date"
-                                            type="date"
-                                            placeholder="Enter the show date"
-                                        ></Input>
-                                    </Form.Item>
-                                </Col>
-                                    
-
-                                <Col span={8}>
-                                    <Form.Item
-                                        label="Show Timing"
-                                        htmlFor="time"
-                                        name="time"
-                                        className="d-block"
-                                        rules={[
-                                            { required: true, message: "Show time is required!" },
-                                        ]}
-                                    >
-                                        <Input
-                                            id="time"
-                                            type="time"
-                                            placeholder="Enter the show time"
-                                        ></Input>
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                        </Col>
-
-                        <Col span={24}>
-                            <Row
-                                gutter={{
-                                    xs: 6,
-                                    sm: 10,
-                                    md: 12,
-                                    lg: 16,
-                                }}
-                            >
-                                <Col span={8}>
-                                    <Form.Item
-                                        label="Select the Movie"
-                                        htmlFor="movie"
-                                        name="movie"
-                                        className="d-block"
-                                        rules={[{ required: true, message: "Movie is required!" }]}
-                                    >
-                                        <Select
-                                            id="movie"
-                                            name="movie"
-                                            placeholder="Select Movie"
-                                            options={movies.map((movie) => ({
-                                                key: movie._id,
-                                                value: movie._id,
-                                                label: movie.movieName,
-                                            }))}
-                                        />
-                                    </Form.Item>
-                                </Col>
-
-
-                                <Col span={8}>
-                                    <Form.Item
-                                        label="Ticket Price"
-                                        htmlFor="ticketPrice"
-                                        name="ticketPrice"
-                                        className="d-block"
-                                        rules={[
-                                            { required: true, message: "Ticket price is required!" },
-                                        ]}
-                                    >
-                                        <Input
-                                            id="ticketPrice"
-                                            type="number"
-                                            placeholder="Enter the ticket price"
-                                        ></Input>
-                                    </Form.Item>
-                                </Col>
-
-
-                                <Col span={8}>
-                                    <Form.Item
-                                        label="Total Seats"
-                                        htmlFor="totalSeats"
-                                        name="totalSeats"
-                                        className="d-block"
-                                        rules={[
-                                            { required: true, message: "Total seats are required!" }
-                                        ]}
-                                    >
-                                        <Input
-                                            id="totalSeats"
-                                            type="number"
-                                            placeholder="Enter the number of total seats"
-                                        ></Input>
-                                    </Form.Item>
-                                </Col>
-                            </Row>
-                        </Col>
-                    </Row>
-
-
-                    <div className="d-flex gap-10">
-                        <Button
-                            className=""
-                            block
-                            onClick={() => {
-                                setView("table");
-                            }}
-                            htmlType="button"
-                        >
-                            <ArrowLeftOutlined /> Go Back
-                        </Button>
-
-
-                        <Button
-                            block
-                            type="primary"
-                            htmlType="submit"
-                            style={{ fontSize: "1rem", fontWeight: "600" }}
-                        >
-                            {view === "add" ? "Add the show" : "Edit the Show"}
-                        </Button>
-                    </div>
-                </Form>
-            )}
-        </Modal>
-    );
+            <Button type="primary" htmlType="submit">
+              {view === "add" ? "Create Show" : "Update Show"}
+            </Button>
+          </div>
+        </Form>
+      )}
+    </Modal>
+  );
 };
-
 
 export default ShowModal;

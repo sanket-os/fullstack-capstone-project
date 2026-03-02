@@ -1,4 +1,4 @@
-import { Form, Input, Button, message } from "antd";
+import { Form, Input, Button, message, Card } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { LoginUser } from '../api/user';
 import { useDispatch } from "react-redux";
@@ -25,7 +25,7 @@ const Login = () => {
       try {
         await GetCurrentUser();
         navigate("/", { replace: true });
-      } catch (error) {
+      } catch {
         // Not logged in — do nothing
       }
     })();
@@ -43,7 +43,7 @@ const Login = () => {
       // Add delay before navigation
       setTimeout(() => {
         navigate("/", { replace: true });
-      }, 1200);
+      }, 800);
 
     } catch (error) {
       const friendlyMessage = mapErrorToMessage(error);
@@ -54,62 +54,77 @@ const Login = () => {
   };
 
 
-  return (
-    <div className='App-header'>
-      {contextHolder} {/* Add this */}
+ return (
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "var(--space-5)",
+        background: "var(--bg-light)",
+      }}
+    >
+      {contextHolder}
 
-      <main className='main-area mw-500 text-center px-3'>
-
-        <section>
-          <h1>Login to BookMyShow</h1>
-        </section>
-
-        <section>
-          <Form layout='vertical' onFinish={onFinish}>
-            <Form.Item
-              label="Email"
-              htmlFor='email'
-              name="email"
-              className='d-block'
-              rules={[{ required: true, message: "Email is Required" }]}>
-
-              <Input id='email' type='email' placeholder='Enter your Email'></Input>
-            </Form.Item>
-
-            <Form.Item
-              label="Password"
-              htmlFor='password'
-              name="password"
-              className='d-block'
-              rules={[{ required: true, message: "Password is Required" }]}>
-
-              <Input id='password' type='password' placeholder='Enter your Password'></Input>
-            </Form.Item>
-
-            <Form.Item>
-              <Button
-                type="primary"
-                block htmlFor="submit"
-                htmlType='submit'
-                style={{ fontSize: "1rem", fontWeight: "600" }}>
-                Login
-              </Button>
-            </Form.Item>
-          </Form>
-        </section>
-
-        <section>
-          <p>
-            New User ? <Link to="/register">Register Here</Link>
+      <Card
+        bordered={false}
+        style={{
+          width: 420,
+          borderRadius: 16,
+        }}
+      >
+        <div style={{ marginBottom: "var(--space-5)", textAlign: "center" }}>
+          <h2 style={{ marginBottom: 4 }}>Welcome Back</h2>
+          <p style={{ margin: 0 }}>
+            Login to continue booking your favorite movies
           </p>
+        </div>
 
-          <p>
-            Forgot Password? <Link to="/forget">Click Here</Link>
+        <Form layout="vertical" onFinish={onFinish}>
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[{ required: true, message: "Email is required" }]}
+          >
+            <Input size="large" placeholder="Enter your email" />
+          </Form.Item>
+
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[{ required: true, message: "Password is required" }]}
+          >
+            <Input.Password size="large" placeholder="Enter your password" />
+          </Form.Item>
+
+          <Form.Item style={{ marginTop: "var(--space-4)" }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              block
+            >
+              Login
+            </Button>
+          </Form.Item>
+        </Form>
+
+        <div
+          style={{
+            marginTop: "var(--space-4)",
+            textAlign: "center",
+            fontSize: 14,
+          }}
+        >
+          <p style={{ marginBottom: 8 }}>
+            New user? <Link to="/register">Register</Link>
           </p>
-        </section>
-      </main>
+          <Link to="/forget">Forgot password?</Link>
+        </div>
+      </Card>
     </div>
-  )
-}
+  );
+};
 
 export default Login;

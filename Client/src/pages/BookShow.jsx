@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { Card, Row, Col, Button, message } from "antd";
+import { Card, Row, Col, Button, message, Steps, Divider } from "antd";
 import moment from "moment";
 
 import { getShowById } from "../api/show";
@@ -38,16 +38,20 @@ const BookShow = () => {
   const { id: showId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  // const { user } = useSelector((state) => state.user);
 
   const [show, setShow] = useState(null);
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [currentStep, setCurrentStep] = useState(0);
 
   /**
    * Stripe-related state
    */
   const [clientSecret, setClientSecret] = useState(null);
-  const [showPaymentUI, setShowPaymentUI] = useState(false);
+  // const [showPaymentUI, setShowPaymentUI] = useState(false);
+
+  useEffect(() => {
+    fetchShow();
+  }, [showId]);
 
   /**
    * Fetch show details on page load
@@ -66,9 +70,7 @@ const BookShow = () => {
     }
   };
 
-  useEffect(() => {
-    fetchShow();
-  }, [showId]);
+
 
   /**
    * STEP 1: Create Stripe PaymentIntent
@@ -90,7 +92,8 @@ const BookShow = () => {
       });
 
       setClientSecret(response.clientSecret);
-      setShowPaymentUI(true);
+      // setShowPaymentUI(true);
+      setCurrentStep(1);
 
     } catch (error) {
       message.error(mapErrorToMessage(error));
@@ -112,15 +115,17 @@ const BookShow = () => {
     try {
       dispatch(showLoading());
 
-      await makePaymentAndBookShow({
+      let response = await makePaymentAndBookShow({
         show: showId,
         seats: selectedSeats,
         paymentIntentId,
-        // user: user._id,
       });
 
-      message.success("Show booked successfully!");
-      navigate("/mybookings");
+      setCurrentStep(2);
+
+      navigate("/booking-success", {
+        state: { booking: response.data }
+      });
 
     } catch (error) {
       message.error(mapErrorToMessage(error));
@@ -186,21 +191,21 @@ const BookShow = () => {
        * Now send paymentIntent.id to backend for verification & booking
        */
       if (paymentIntent.status === "succeeded") {
-        message.success("Payment successful");
         await bookAndPay(paymentIntent.id);
       }
     };
 
     return (
-      <form onSubmit={handlePay}>
+      <form onSubmit={handlePay} style={{ marginTop: "var(--space-4)" }}>
         <PaymentElement />
         <Button
           type="primary"
           htmlType="submit"
           block
-          style={{ marginTop: 20 }}
+          size="large"
+          style={{ marginTop: "var(--space-3)" }}
         >
-          Pay Now
+          Pay ₹{selectedSeats.length * show.ticketPrice}
         </Button>
       </form>
     );
@@ -215,16 +220,15 @@ const BookShow = () => {
     const rows = Math.ceil(totalSeats / columns);
 
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div className="w-100 max-width-600 mx-auto mb-25px">
-          <p className="text-center mb-10px">
-            Screen this side — you will be watching in this direction
-          </p>
+      <div style={{ maxWidth: 700, margin: "0 auto" }}>
 
-          <div className="screen-div"></div>
+        <p style={{ textAlign: "center", marginBottom: "var(--space-3)" }}>
+          Screen this side — you will be watching in this direction
+        </p>
 
-          <ul className="seat-ul justify-content-center">
-            {/* Array.from(Array(rows).keys()) =>
+        <div className="screen-div"></div>
+
+        {/* Array.from(Array(rows).keys()) =>
 
                      Array(rows) → creates an empty array with rows length
                      Example: if rows = 5, you get:
@@ -241,110 +245,153 @@ const BookShow = () => {
 
                      same thing happens with columns to create a grid of (rows * columns) 
                     */}
-            {Array.from({ length: rows }).map((_, row) =>
-              Array.from({ length: columns }).map((_, column) => {
-                const seatNumber = row * columns + column + 1;
-                if (seatNumber > totalSeats) return null;
 
+        <ul className="seat-ul">
+          {Array.from({ length: rows }).map((_, row) =>
+            Array.from({ length: columns }).map((_, column) => {
+              const seatNumber = row * columns + column + 1;
+              if (seatNumber > totalSeats) return null;
 
-                let seatClass = "seat-btn";
-                if (selectedSeats.includes(seatNumber)) seatClass += " selected";
-                if (show.bookedSeats.includes(seatNumber)) seatClass += " booked";
+              const isSelected = selectedSeats.includes(seatNumber);
+              const isBooked = show.bookedSeats.includes(seatNumber);
 
+              return (
+                <li key={seatNumber}>
+                  <button
+                    className={`seat ${isSelected ? "seat-selected" : ""
+                      } ${isBooked ? "seat-booked" : ""}`}
+                    disabled={isBooked || currentStep > 0}
+                    onClick={() => {
+                      if (currentStep > 0) return; // prevent changes
 
-                return (
-                  <li key={seatNumber}>
-                    <button
-                      className={seatClass}
-                      onClick={() => {
-                        if (seatClass.includes("booked")) return;
-
-
-                        setSelectedSeats((prev) =>
-                          prev.includes(seatNumber)
-                            ? prev.filter((s) => s !== seatNumber)
-                            : [...prev, seatNumber]
-                        );
-                      }}
-                    >
-                      {seatNumber}
-                    </button>
-                  </li>
-                );
-              })
-            )}
-          </ul>
-        </div>
+                      setSelectedSeats((prev) =>
+                        prev.includes(seatNumber)
+                          ? prev.filter((s) => s !== seatNumber)
+                          : [...prev, seatNumber]
+                      );
+                    }}
+                  >
+                    {seatNumber}
+                  </button>
+                </li>
+              );
+            })
+          )}
+        </ul>
       </div>
     );
   };
 
+  if (!show) return null;
+
+
   return (
-    <div>
-      {show && (
-        <Row gutter={24}>
-          <Col span={24}>
-            <Card
-              title={
-                <div>
-                  <h1>{show.movie.movieName}</h1>
-                  <p>
-                    Theatre: {show.theatre.name}, {show.theatre.address}
-                  </p>
-                </div>
-              }
-              extra={
-                <div className="py-3">
-                  <h3>
-                    Date & Time:{" "}
-                    {moment(show.date).format("MMM Do YYYY")} at{" "}
-                    {moment(show.time, "HH:mm").format("hh:mm A")}
-                  </h3>
+    <>
+      <div className={`step-container ${currentStep === 0 ? "active" : ""}`}
+        style={{
+          maxWidth: 800,
+          margin: "var(--space-6) auto var(--space-7)"
+        }}
+      >
+        <Steps
+          size="small"
+          current={currentStep}
+          items={[
+            { title: "Select Seats" },
+            { title: "Payment" },
+            { title: "Confirmation" },
+          ]}
+        />
+      </div>
 
-                  <h3>Ticket Price: ₹{show.ticketPrice}</h3>
-                  <h3>
-                  
-                    Total Seats: {show.totalSeats}
-                    <span> &nbsp;|&nbsp; Available Seats: </span>
-                    {/* &nbsp; stands for:
-                          Non-Breaking Space
-                          It is a special HTML character used when you want to add a space that the browser will not collapse or break across lines. 
-                          Total Seats: 50 | Available Seats: 20 
-                        */}
-                    {show.totalSeats - show.bookedSeats.length}
-                  </h3>
-                </div>
-              }
-            >
-              {renderSeats()}
+      <Row justify="center">
+        <Col xs={24} lg={22}>
+          <Card
+            bordered={false}
+            style={{ borderRadius: 16 }}
+            title={
+              <>
+                <h2 style={{ marginBottom: 4 }}>
+                  {show.movie.movieName}
+                </h2>
+                <p style={{ margin: 0 }}>
+                  {show.theatre.name} —{" "}
+                  {moment(show.date).format("MMM Do YYYY")} •{" "}
+                  {moment(show.time, "HH:mm").format("hh:mm A")}
+                </p>
+              </>
+            }
+          >
 
-              {selectedSeats.length > 0 && !showPaymentUI && (
-                <div className="max-width-600 mx-auto">
-                  <Button
-                    type="primary"
-                    shape="round"
-                    size="large"
-                    block
-                    onClick={createIntent}
-                  >
-                    Proceed to Payment
-                  </Button>
-                </div>
-              )}
+            {/* STEP 0 — Seat Selection */}
+            {currentStep === 0 && renderSeats()}
 
-              {clientSecret && showPaymentUI && (
-                <Elements stripe={stripePromise} options={{ clientSecret }}>
-                  <div style={{ marginBottom: 20, fontWeight: "bold" }}>
-                    Total Payable: ₹{selectedSeats.length * show.ticketPrice}
-                  </div>
-                  <PaymentSection />
-                </Elements>
-              )}
-            </Card>
-          </Col>
-        </Row>
-      )}
-    </div>
+            {/* STEP 1 — Checkout Layout */}
+            {currentStep === 1 && (
+              <div className="fade-step">
+                <Row gutter={[32, 32]}>
+
+                  {/* LEFT COLUMN — SUMMARY */}
+                  <Col xs={24} md={10}>
+                    <div
+                      style={{
+                        background: "#f9fafb",
+                        padding: "var(--space-4)",
+                        borderRadius: 16,
+                      }}
+                    >
+                      <h3>Selected Seats</h3>
+                      <p style={{ marginBottom: 8 }}>
+                        {selectedSeats.join(", ")}
+                      </p>
+
+                      <Divider />
+
+                      <h3>
+                        Total: ₹ {selectedSeats.length * show.ticketPrice}
+                      </h3>
+
+                      <Button
+                        type="default"
+                        block
+                        style={{ marginTop: "var(--space-3)" }}
+                        onClick={() => {
+                          setClientSecret(null);
+                          setCurrentStep(0);
+                        }}
+                      >
+                        ← Back to Seat Selection
+                      </Button>
+                    </div>
+                  </Col>
+
+                  {/* RIGHT COLUMN — PAYMENT */}
+                  <Col xs={24} md={14}>
+                    <Elements stripe={stripePromise} options={{ clientSecret }}>
+                      <PaymentSection />
+                    </Elements>
+                  </Col>
+                </Row>
+              </div>
+            )}
+
+            {/* STEP 0 CTA */}
+            {currentStep === 0 && selectedSeats.length > 0 && (
+              <Button
+                type="primary"
+                size="large"
+                block
+                style={{ marginTop: "var(--space-4)" }}
+                onClick={createIntent}
+              >
+                Proceed to Payment
+              </Button>
+            )}
+
+          </Card>
+        </Col>
+      </Row>
+    </>
   );
 };
 

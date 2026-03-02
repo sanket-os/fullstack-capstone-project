@@ -1,8 +1,7 @@
-import { Form, Input, Button, message, Radio } from "antd";
+import { Form, Input, Button, message, Radio, Card } from "antd";
 import { Link, useNavigate } from "react-router-dom";
-import { RegisterUser } from '../api/user';
+import { RegisterUser, GetCurrentUser } from '../api/user';
 import { useEffect } from "react";
-import { GetCurrentUser } from "../api/user";
 import { mapErrorToMessage } from "../utils/errorMapper";
 
 const Register = () => {
@@ -34,92 +33,99 @@ const Register = () => {
         // Add delay before navigation
       setTimeout(() => {
         navigate("/login");
-      }, 1200);
+      }, 800);
      
     } catch (error) {
       messageApi.error(mapErrorToMessage(error));
     }
   };
 
-  return (
-    <div className="App-header">
+ return (
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "var(--space-5)",
+        background: "var(--bg-light)",
+      }}
+    >
       {contextHolder}
 
-      <main className='main-area mw-500 text-center px-3'>
-        <section>
-          <h1>Register to BookMyShow</h1>
-        </section>
-
-        <section>
-          <Form layout="vertical" onFinish={onFinish}>
-            <Form.Item 
-              label="Name" 
-              htmlFor="name" 
-              name="name"
-              className='d-block'
-              rules={[{ required: true, message: "Name is Required" }]}>
-              <Input id="name" type="text" placeholder='Enter you Name' />
-            </Form.Item>
-
-
-            <Form.Item 
-              label="Email"
-              htmlFor='email' 
-              name="email"
-              className='d-block'
-              rules={[{ required: true, message: "Email is Required" }]}>
-              <Input id='email' type='email'
-                placeholder='Enter your Email'></Input>
-            </Form.Item>
-
-
-            <Form.Item 
-            label="Password" 
-            htmlFor='password' 
-            name="password"
-            className='d-block'
-            rules={[{ required: true, message: "Password is Required" }]}>
-            <Input id='password' type='password'
-              placeholder='Enter your Password'></Input>
-            </Form.Item>
-
-
-            <Form.Item
-              label="Register as a Partner"
-              htmlFor="role"
-              name="role"
-              className="d-block text-center"
-              initialValue="user"
-              rules={[{ required: true, message: "Please select an option!" }]}
-            >
-              <div className='d-flex justify-content-start'>
-                <Radio.Group name='radiogroup' className="flex-start">
-                  <Radio value={"partner"}>Yes</Radio>
-                  <Radio value={"user"}>No</Radio>
-                </Radio.Group>
-              </div>
-            </Form.Item>
-
-
-            <Form.Item>
-              <Button 
-                type="primary" 
-                block htmlFor="submit" 
-                htmlType='submit'
-                style={{ fontSize: "1rem", fontWeight: "600" }}
-              >
-                Register
-              </Button>
-            </Form.Item>
-          </Form>
-        </section>
-
-        <section>
-          <p>
-            Already a user ? <Link to="/login">Login Now</Link>
+      <Card
+        bordered={false}
+        style={{
+          width: 460,
+          borderRadius: 16,
+        }}
+      >
+        <div style={{ marginBottom: "var(--space-5)", textAlign: "center" }}>
+          <h2 style={{ marginBottom: 4 }}>Create Account</h2>
+          <p style={{ margin: 0 }}>
+            Join BookMyShow and start booking movies
           </p>
-        </section>
-      </main>
+        </div>
+
+        <Form layout="vertical" onFinish={onFinish} initialValues={{ role: "user" }}>
+          <Form.Item
+            label="Name"
+            name="name"
+            rules={[{ required: true, message: "Name is required" }]}
+          >
+            <Input size="large" placeholder="Enter your name" />
+          </Form.Item>
+
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[{ required: true, message: "Email is required" }]}
+          >
+            <Input size="large" type="email" placeholder="Enter your email" />
+          </Form.Item>
+
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[{ required: true, message: "Password is required" }]}
+          >
+            <Input.Password size="large" placeholder="Enter your password" />
+          </Form.Item>
+
+          <Form.Item
+            label="Register as Partner?"
+            name="role"
+            rules={[{ required: true }]}
+          >
+            <Radio.Group>
+              <Radio value="user">No</Radio>
+              <Radio value="partner">Yes</Radio>
+            </Radio.Group>
+          </Form.Item>
+
+          <Form.Item style={{ marginTop: "var(--space-4)" }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              block
+            >
+              Register
+            </Button>
+          </Form.Item>
+        </Form>
+
+        <div
+          style={{
+            marginTop: "var(--space-4)",
+            textAlign: "center",
+            fontSize: 14,
+          }}
+        >
+          Already have an account?{" "}
+          <Link to="/login">Login</Link>
+        </div>
+      </Card>
     </div>
   );
 };

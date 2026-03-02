@@ -1,5 +1,5 @@
 import { getAllBookings } from "../api/booking";
-import { Button, Card, Col, Row, message } from "antd";
+import { Button, Card, Col, Row, message, Empty, Tag } from "antd";
 import { useEffect, useState } from "react";
 import { hideLoading, showLoading } from "../redux/loaderSlice";
 import { useDispatch } from "react-redux";
@@ -11,7 +11,11 @@ const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const dispatch = useDispatch();
 
-  const getData = async () => {
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
     try {
       dispatch(showLoading());
 
@@ -25,81 +29,107 @@ const MyBookings = () => {
     }
   };
 
-  useEffect(() => {
-    getData();
-  }, []);
+  
+  if (!bookings.length) {
+    return (
+      <div
+        style={{
+          minHeight: "60vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexDirection: "column",
+        }}
+      >
+        <Empty description="No bookings yet" />
+        <Link to="/">
+          <Button type="primary" size="large">
+            Start Booking
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
-  return (
-    <>
-      {bookings && (
-        <Row gutter={24}>
-          {bookings
-            .filter(b => b.show)
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-            .map((booking) => {
-            return (
-              <Col key={booking._id} xs={{ span: 24 }} lg={{ span: 12 }}>
 
-                <Card className="mb-3">
-                  <div className="d-flex flex-column-mob">
-                    <div className="flex-shrink-0">
-                      <img
-                        src={booking.show?.movie?.poster}
-                        width={100}
-                        alt="Movie Poster"
-                      />
-                    </div>
-                    
-                    <div className="show-details flex-1">
-                      <h3 className="mt-0 mb-0">{booking.show?.movie?.movieName }</h3>
+   return (
+    <div>
+      <h2 style={{ marginBottom: "var(--space-5)" }}>
+        My Bookings
+      </h2>
 
-                      <p>
-                        Theatre: <b>{booking.show?.theatre?.name}</b>
-                      </p>
+      <Row gutter={[24, 32]}>
+        {bookings
+          .filter((b) => b.show)
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .map((booking) => (
+            <Col key={booking._id} xs={24} md={12}>
+              <Card
+                bordered={false}
+                style={{
+                  borderRadius: 16,
+                }}
+              >
+                <div style={{ display: "flex", gap: "var(--space-4)" }}>
+                  
+                  {/* Poster */}
+                  <img
+                    src={booking.show?.movie?.poster}
+                    alt={booking.show?.movie?.movieName}
+                    style={{
+                      width: 110,
+                      height: 160,
+                      objectFit: "cover",
+                      borderRadius: 12,
+                    }}
+                  />
 
-                      <p>
-                        Seats: <b>{booking.seats.join(", ")}</b>
-                      </p>
+                  {/* Details */}
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ marginBottom: 6 }}>
+                      {booking.show?.movie?.movieName}
+                    </h3>
 
-                      <p>
-                        Date & Time:
-                        <b>
-                          {moment(booking.show.date).format("MMM Do YYYY")} at{" "}
-                          {moment(booking.show.time, "HH:mm").format("hh:mm A")}
-                        </b>
-                      </p>
+                    <p style={{ marginBottom: 4 }}>
+                      {booking.show?.theatre?.name}
+                    </p>
 
-                      <p>
-                        Amount:
-                        {/* <b>
-                          Rs.{booking.seats.length * booking.show.ticketPrice}
-                        </b> */}
-                         <b>₹{(booking.amount / 100).toFixed(2)}</b>
-                      </p>
+                    <p style={{ marginBottom: 4 }}>
+                      {moment(booking.show.date).format("MMM Do YYYY")} •{" "}
+                      {moment(booking.show.time, "HH:mm").format("hh:mm A")}
+                    </p>
 
-                      <p>
-                        Booking ID: <b>{booking.transactionId} </b>
-                      </p>
-                    </div>
+                    <p style={{ marginBottom: 8 }}>
+                      Seats:{" "}
+                      <Tag color="blue">
+                        {booking.seats.join(", ")}
+                      </Tag>
+                    </p>
+
+                    <p style={{ marginBottom: 4 }}>
+                      <strong>
+                        ₹{(booking.amount / 100).toFixed(2)}
+                      </strong>
+                    </p>
+
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "var(--text-secondary)",
+                        margin: 0,
+                      }}
+                    >
+                      Booking ID: {booking.transactionId}
+                    </p>
                   </div>
-                </Card>
-              </Col>
-            );
-          })}
-        </Row>
-      )}
-
-      {!bookings.length && (
-        <div className="text-center pt-3">
-          <h1>You've not booked any show yet!</h1>
-          
-          <Link to="/">
-            <Button type="primary">Start Booking</Button>
-          </Link>
-        </div>
-      )}
-    </>
+                </div>
+              </Card>
+            </Col>
+          ))}
+      </Row>
+    </div>
   );
 };
+
 
 export default MyBookings;

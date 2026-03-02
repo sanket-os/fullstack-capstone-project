@@ -1,11 +1,11 @@
-import { Layout, Menu } from "antd";
-import { Content, Footer, Header } from "antd/es/layout/layout";
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Layout, Menu, Spin, Dropdown } from "antd";
+
 import {
-    HomeOutlined,
-    LogoutOutlined,
-    ProfileOutlined,
-    UserOutlined,
+  HomeOutlined,
+  LogoutOutlined,
+  ProfileOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 
 import { Link, useNavigate } from "react-router-dom";
@@ -16,156 +16,196 @@ import { setUser } from "../redux/userSlice";
 import { axiosInstance } from "../api/index";
 import { mapErrorToMessage } from "../utils/errorMapper";
 
+import { Content, Footer, Header } from "antd/es/layout/layout";
 
 const ProtectedRoute = ({ children }) => {
 
-    const { user } = useSelector((state) => state.user);
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const [authChecked, setAuthChecked] = React.useState(false);
+  const { user } = useSelector((state) => state.user);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [authChecked, setAuthChecked] = useState(false);
 
-    useEffect(() => {
-        getValidUser();
-    }, []);
-
-
-    const getValidUser = async () => {
-        try {
-            dispatch(showLoading());
-
-            const response = await GetCurrentUser();
-            console.log('API Response:', response); // Debug log
-
-            dispatch(setUser(response?.data));
-
-        } catch (error) {
-            /**
-                * If session invalid → redirect silently
-                * No scary error message needed
-            */
-            dispatch(setUser(null));
-            navigate("/login", { replace: true });
-
-            // Optional debug:
-            console.warn("Session expired:", mapErrorToMessage(error));
-        } finally {
-            dispatch(hideLoading());
-            setAuthChecked(true); // ✅ mark auth complete
-        }
-    };
+  useEffect(() => {
+    getValidUser();
+  }, []);
 
 
-    const handleLogout = async () => {
-        try {
-            await axiosInstance.post("/users/logout");
-        } catch (e) {
-            // Even if logout fails, force logout locally
-        } finally {
-            dispatch(setUser(null));
-            navigate("/login", { replace: true });
-            window.location.reload(); // optional but useful in payment apps
-        }
-    };
+  const getValidUser = async () => {
+    try {
+      dispatch(showLoading());
+
+      const response = await GetCurrentUser();
+      console.log('API Response:', response); // Debug log
+
+      dispatch(setUser(response?.data));
+
+    } catch (error) {
+      /**
+          * If session invalid → redirect silently
+          * No scary error message needed
+      */
+      dispatch(setUser(null));
+      navigate("/login", { replace: true });
+
+      // Optional debug:
+      console.warn("Session expired:", mapErrorToMessage(error));
+    } finally {
+      dispatch(hideLoading());
+      setAuthChecked(true); // ✅ mark auth complete
+    }
+  };
 
 
-    const navItems = [
-        {
-            key: "home",
-            label: (
-                <span
-                    onClick={() => {
-                        navigate("/");
-                    }}>
-                    Home
-                </span>
-            ),
-            icon: <HomeOutlined />,
-        },
+  const handleLogout = async () => {
+    try {
+      await axiosInstance.post("/users/logout");
+    } catch (e) {
+      // Even if logout fails, force logout locally
+      // silent fail
+    } finally {
+      dispatch(setUser(null));
+      navigate("/login", { replace: true });
+      window.location.reload(); // optional but useful in payment apps
+    }
+  };
 
 
-        {
-            key: "roleProfile",
-            label: (
-                <span
-                    onClick={() => {
-                        if (user?.role === "admin") {
-                            navigate("/admin", { replace: true });
-                        } else if (user.role === "partner") {
-                            navigate("/partner", { replace: true });
-                        } else {
-                            navigate("/mybookings", { replace: true });
-                        }
-                    }}
-                >
-                    {user?.role === "admin" && "Movie Management"}
-                    {user?.role === "partner" && "Theatre Management"}
-                    {user?.role === "user" && "My Bookings"}
-                </span>
-            ),
-            icon: <ProfileOutlined />
-        },
-
-        // Property	                    Behavior
-        // replace: false (default)	    Add new history entry
-        // replace: true	            Replace current entry (no back navigation to previous page)
-
-        // after you login going back to the login page is undesirable hence replace: true is good option here
-
-        {
-            key: "profile",
-            label: `${user ? user.name : ""}`,
-            icon: <UserOutlined />,
-            children: [
-                {
-                    key: "logout",
-                    label: <Link onClick={handleLogout}>Logout</Link>,
-                    icon: <LogoutOutlined />,
-                },
-            ],
-        },
-
-    ];
-
-    if (!authChecked) return null;
-
+  if (!authChecked) {
     return (
-        <>
-            <Layout style={{ minHeight: "100vh" }}>
-                <Header
-                    className="d-flex justify-content-between"
-                    style={{
-                        position: "sticky",
-                        top: 0,
-                        zIndex: 1,
-                        width: "100%",
-                        alignItems: "center",
-                    }}
-                >
-                    <h3 className="text-white m-0" style={{ color: "white" }}>
-                        BookMyShow
-                    </h3>
-                    <Menu theme="dark" mode="horizontal" items={navItems} />
-                </Header>
-
-
-                <Content style={{ minHeight: "calc(100vh - 128px)" }}>
-                    {children}
-                </Content>
-
-
-                <Footer
-                    style={{
-                        textAlign: "center",
-                        background: "#001529",
-                        color: "white",
-                        width: "100%",
-                    }}
-                >
-                    BookMyShow ©{new Date().getFullYear()} Created by Sam
-                </Footer>
-            </Layout>
-        </>
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Spin size="large" />
+      </div>
     );
+  }
+
+
+  return (
+    <Layout style={{ minHeight: "100vh", background: "var(--bg-light)" }}>
+
+      {/* HEADER */}
+      <Header
+        style={{
+          height: 64,
+          background: "#ffffff",
+          borderBottom: "1px solid var(--border)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 var(--space-5)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+        }}
+      >
+        {/* LOGO */}
+        <div
+          style={{
+            fontWeight: 600,
+            fontSize: 18,
+            letterSpacing: "0.4px",
+            cursor: "pointer",
+            color: "var(--text-primary)",
+          }}
+          onClick={() => navigate("/")}
+        >
+          BookMyShow
+        </div>
+
+        {/* CENTER NAV */}
+        <Menu
+          mode="horizontal"
+          selectable={false}
+          style={{
+            borderBottom: "none",
+            flex: 1,
+            justifyContent: "center",
+            background: "transparent",
+          }}
+          items={[
+            {
+              key: "home",
+              icon: <HomeOutlined />,
+              label: "Home",
+              onClick: () => navigate("/"),
+            },
+            {
+              key: "role",
+              icon: <ProfileOutlined />,
+              label:
+                user?.role === "admin"
+                  ? "Admin"
+                  : user?.role === "partner"
+                    ? "Partner"
+                    : "My Bookings",
+              onClick: () => {
+                if (user?.role === "admin") navigate("/admin");
+                else if (user?.role === "partner") navigate("/partner");
+                else navigate("/mybookings");
+              },
+            },
+          ]}
+        />
+
+        {/* USER MENU */}
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: "logout",
+                icon: <LogoutOutlined />,
+                label: "Logout",
+                onClick: handleLogout,
+              },
+            ],
+          }}
+          placement="bottomRight"
+        >
+          <div
+            style={{
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontWeight: 500,
+            }}
+          >
+            <UserOutlined />
+            {user?.name}
+          </div>
+        </Dropdown>
+      </Header>
+
+      {/* CONTENT */}
+      <Content
+        style={{
+          padding: "var(--space-6) var(--space-3)",
+          maxWidth: 1200,
+          margin: "0 auto",
+          width: "100%",
+        }}
+      >
+        {children}
+      </Content>
+
+      {/* FOOTER */}
+      <Footer
+        style={{
+          textAlign: "center",
+          background: "#ffffff",
+          borderTop: "1px solid var(--border)",
+          color: "var(--text-secondary)",
+          padding: "var(--space-3)",
+        }}
+      >
+        © {new Date().getFullYear()} BookMyShow — Capstone Project
+      </Footer>
+    </Layout>
+  );
 };
 
 export default ProtectedRoute;

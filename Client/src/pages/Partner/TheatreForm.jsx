@@ -1,186 +1,160 @@
 import { useDispatch, useSelector } from "react-redux";
 import { hideLoading, showLoading } from "../../redux/loaderSlice";
 import { addTheatre, updateTheatre } from "../../api/theatre";
-import { Col, Modal, Row, Form, Input, Button, message } from "antd";
+import {
+  Col,
+  Modal,
+  Row,
+  Form,
+  Input,
+  Button,
+  message,
+  Typography,
+} from "antd";
 import TextArea from "antd/es/input/TextArea";
 import { useEffect } from "react";
 import { mapErrorToMessage } from "../../utils/errorMapper";
 
+const { Title, Text } = Typography;
+
 const TheatreForm = ({
-    isModalOpen,
-    setIsModalOpen,
-    selectedTheatre,
-    setSelectedTheatre,
-    formType,
-    fetchTheatreData,
+  isModalOpen,
+  setIsModalOpen,
+  selectedTheatre,
+  setSelectedTheatre,
+  formType,
+  fetchTheatreData,
 }) => {
-    const dispatch = useDispatch();
-    const { user } = useSelector((state) => state.user);
-    const [form] = Form.useForm();
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user);
+  const [form] = Form.useForm();
 
+  useEffect(() => {
+    if (formType === "edit" && selectedTheatre) {
+      form.setFieldsValue(selectedTheatre);
+    } else {
+      form.resetFields();
+    }
+  }, [formType, selectedTheatre, form]);
 
-    useEffect(() => {
-        if (formType === "edit" && selectedTheatre) {
-            form.setFieldsValue(selectedTheatre);
-        } else {
-            form.resetFields();
-        }
-    }, [formType, selectedTheatre, form]);
+  const onFinish = async (values) => {
+    try {
+      dispatch(showLoading());
 
+      if (formType === "add") {
+        await addTheatre({ ...values, owner: user._id });
+        message.success("Theatre added successfully");
+      } else {
+        await updateTheatre({
+          ...values,
+          theatreId: selectedTheatre._id,
+        });
+        message.success("Theatre updated successfully");
+      }
 
-    const onFinish = async (values) => {
-        try {
-            dispatch(showLoading());
+      fetchTheatreData();
+      handleClose();
+    } catch (error) {
+      message.error(mapErrorToMessage(error));
+    } finally {
+      dispatch(hideLoading());
+    }
+  };
 
-           
-            if (formType === "add") {
-                await addTheatre({ ...values, owner: user._id });
-                message.success("Theatre added successfully");
-            } else {
-                values.theatreId = selectedTheatre._id;
-                await updateTheatre(values);
-                message.success("Theatre updated successfully");
-            }
+  const handleClose = () => {
+    setIsModalOpen(false);
+    setSelectedTheatre(null);
+    form.resetFields();
+  };
 
-            fetchTheatreData();
-            handleClose();
-            
-        } catch (error) {
-            message.error(mapErrorToMessage(error));
-        } finally {
-            dispatch(hideLoading());
-        }
-    };
+  return (
+    <Modal
+      centered
+      open={isModalOpen}
+      onCancel={handleClose}
+      width={750}
+      footer={null}
+    >
+      {/* HEADER */}
+      <div style={{ marginBottom: "var(--space-5)" }}>
+        <Title level={4} style={{ marginBottom: 4 }}>
+          {formType === "add" ? "Add Theatre" : "Edit Theatre"}
+        </Title>
+        <Text type="secondary">
+          {formType === "add"
+            ? "Provide theatre details to start hosting shows"
+            : "Update theatre information"}
+        </Text>
+      </div>
 
-
-    const handleClose = () => {
-        setIsModalOpen(false);
-        setSelectedTheatre(null);
-        form.resetFields();
-    };
-
-    return (
-        <Modal
-            centered
-            title={formType === "add" ? "Add Theatre" : "Edit Theatre"}
-            open={isModalOpen}
-            onCancel={handleClose}
-            width={800}
-            footer={null}
-        >
-            <Form
-                form={form}   
-                layout="vertical"
-                style={{ width: "100%" }}
-                onFinish={onFinish}
+      {/* FORM */}
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+      >
+        <Row gutter={24}>
+          <Col span={24}>
+            <Form.Item
+              label="Theatre Name"
+              name="name"
+              rules={[{ required: true, message: "Theatre name is required!" }]}
             >
-                <Row
-                    gutter={{
-                        xs: 6,
-                        sm: 10,
-                        md: 12,
-                        lg: 16,
-                    }}
-                >
-                    <Col span={24}>
-                        <Form.Item
-                            label="Theatre Name"
-                            htmlFor="name"
-                            name="name"
-                            className="d-block"
-                            rules={[{ required: true, message: "Theatre name is required!" }]}
-                        >
-                            <Input
-                                id="name"
-                                type="text"
-                                placeholder="Enter the theatre name"
-                            ></Input>
-                        </Form.Item>
-                    </Col>
+              <Input size="large" placeholder="Enter theatre name" />
+            </Form.Item>
+          </Col>
 
+          <Col span={24}>
+            <Form.Item
+              label="Address"
+              name="address"
+              rules={[{ required: true, message: "Address is required!" }]}
+            >
+              <TextArea rows={3} placeholder="Enter theatre address" />
+            </Form.Item>
+          </Col>
 
-                    <Col span={24}>
-                        <Form.Item
-                            label="Theatre Address"
-                            htmlFor="address"
-                            name="address"
-                            className="d-block"
-                            rules={[{ required: true, message: "Theatre address is required!" }]}
-                        >
-                            <TextArea
-                                id="address"
-                                rows="3"
-                                placeholder="Enter the theatre address"
-                            ></TextArea>
-                        </Form.Item>
-                    </Col>
+          <Col span={12}>
+            <Form.Item
+              label="Email"
+              name="email"
+              rules={[{ required: true, message: "Email is required!" }]}
+            >
+              <Input size="large" type="email" placeholder="Enter email" />
+            </Form.Item>
+          </Col>
 
+          <Col span={12}>
+            <Form.Item
+              label="Phone Number"
+              name="phone"
+              rules={[{ required: true, message: "Phone number is required!" }]}
+            >
+              <Input size="large" type="tel" placeholder="Enter phone number" />
+            </Form.Item>
+          </Col>
+        </Row>
 
-                    <Col span={24}>
-                        <Row
-                            gutter={{
-                                xs: 6,
-                                sm: 10,
-                                md: 12,
-                                lg: 16,
-                            }}
-                        >
-                            <Col span={12}>
-                                <Form.Item
-                                    label="Email"
-                                    htmlFor="email"
-                                    name="email"
-                                    className="d-block"
-                                    rules={[{ required: true, message: "Email is required!" }]}
-                                >
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        placeholder="Enter the email"
-                                    ></Input>
-                                </Form.Item>
-                            </Col>
+        {/* ACTION BUTTONS */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: 12,
+            marginTop: "var(--space-5)",
+          }}
+        >
+          <Button onClick={handleClose}>
+            Cancel
+          </Button>
 
-
-                            <Col span={12}>
-                                <Form.Item
-                                    label="Phone Number"
-                                    htmlFor="phone"
-                                    name="phone"
-                                    className="d-block"
-                                    rules={[{ required: true, message: "Phone number is required!" },]}
-                                >
-                                    <Input
-                                        id="phone"
-                                        type="number"
-                                        placeholder="Enter the phone number"
-                                    ></Input>
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                    </Col>
-                </Row>
-
-
-                <Form.Item>
-                    <Button
-                        block
-                        type="primary"
-                        htmlType="submit"
-                        style={{ fontSize: "1rem", fontWeight: "600" }}
-                    >
-                        Submit the Data
-                    </Button>
-
-
-                    <Button className="mt-3" block onClick={handleClose}>
-                        Cancel
-                    </Button>
-                </Form.Item>
-            </Form>
-        </Modal>
-    );
+          <Button type="primary" htmlType="submit">
+            {formType === "add" ? "Create Theatre" : "Update Theatre"}
+          </Button>
+        </div>
+      </Form>
+    </Modal>
+  );
 };
-
 
 export default TheatreForm;

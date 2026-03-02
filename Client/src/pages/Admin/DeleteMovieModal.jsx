@@ -39,21 +39,54 @@ const DeleteMovieModal = ({
 
     return (
         <Modal
-            title="Delete Movie"
+            title={
+                <span style={{ fontWeight: 600 }}>
+                    Delete Movie
+                </span>
+            }
             open={isDeleteModalOpen}
             onOk={handleOk}
             onCancel={handleCancel}
             okText="Delete"
-            okButtonProps={{ danger: true }}
+            cancelText="Cancel"
+            okButtonProps={{
+                danger: true,
+                style: { borderRadius: 8 },
+            }}
+            cancelButtonProps={{
+                style: { borderRadius: 8 },
+            }}
         >
-            <p className="pt-3 fs-18">
-                Are you sure you want to delete this movie {selectedMovie?.movieName}?
-            </p>
+            <div style={{ marginTop: "var(--space-4)" }}>
+                <p
+                    style={{
+                        fontSize: 14,
+                        marginBottom: "var(--space-3)",
+                        color: "#111827",
+                    }}
+                >
+                    Are you sure you want to delete:
+                </p>
 
+                <p
+                    style={{
+                        fontWeight: 600,
+                        marginBottom: "var(--space-4)",
+                    }}
+                >
+                    {selectedMovie?.movieName}
+                </p>
 
-            <p className="pb-3 fs-18">
-                This action can't be undone and you'll lose this movie data
-            </p>
+                <p
+                    style={{
+                        fontSize: 13,
+                        color: "#6b7280",
+                        margin: 0,
+                    }}
+                >
+                    This action cannot be undone. All associated show data will be permanently removed.
+                </p>
+            </div>
         </Modal>
     );
 };

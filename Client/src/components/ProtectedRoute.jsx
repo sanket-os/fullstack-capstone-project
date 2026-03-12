@@ -1,29 +1,34 @@
 import { useEffect, useState } from "react";
-import { Layout, Menu, Spin, Dropdown } from "antd";
+import { Layout, Menu, Spin, Dropdown, Button, Tooltip } from "antd";
+import logo from "../assets/bookmyshow-logo.svg";
 
 import {
   HomeOutlined,
   LogoutOutlined,
   ProfileOutlined,
   UserOutlined,
+  MoonOutlined,
+  SunOutlined,
 } from "@ant-design/icons";
 
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { GetCurrentUser } from "../api/user";
 import { useSelector, useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../redux/loaderSlice";
 import { setUser } from "../redux/userSlice";
 import { axiosInstance } from "../api/index";
 import { mapErrorToMessage } from "../utils/errorMapper";
+import { useTheme } from "../theme/themeContext";
 
 import { Content, Footer, Header } from "antd/es/layout/layout";
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles }) => {
 
   const { user } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [authChecked, setAuthChecked] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
 
   useEffect(() => {
     getValidUser();
@@ -59,7 +64,7 @@ const ProtectedRoute = ({ children }) => {
   const handleLogout = async () => {
     try {
       await axiosInstance.post("/users/logout");
-    } catch (e) {
+    } catch {
       // Even if logout fails, force logout locally
       // silent fail
     } finally {
@@ -85,6 +90,11 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
+  if (allowedRoles && !allowedRoles.includes(user?.role)) {
+    navigate("/", { replace: true });
+    return null;
+  }
+
 
   return (
     <Layout style={{ minHeight: "100vh", background: "var(--bg-light)" }}>
@@ -93,7 +103,8 @@ const ProtectedRoute = ({ children }) => {
       <Header
         style={{
           height: 64,
-          background: "#ffffff",
+          // background: "#ffffff",
+          background: "var(--card-bg)",
           borderBottom: "1px solid var(--border)",
           display: "flex",
           alignItems: "center",
@@ -104,16 +115,44 @@ const ProtectedRoute = ({ children }) => {
       >
         {/* LOGO */}
         <div
-          style={{
-            fontWeight: 600,
-            fontSize: 18,
-            letterSpacing: "0.4px",
-            cursor: "pointer",
-            color: "var(--text-primary)",
-          }}
           onClick={() => navigate("/")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            cursor: "pointer",
+          }}
         >
-          BookMyShow
+          <div
+            style={{
+              background: "var(--border)",
+              padding: "4px 8px",
+              borderRadius: 6,
+              display: "flex",
+              alignItems: "center",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.08)"
+            }}
+          >
+            <img
+              src={logo}
+              alt="BookMyShow"
+              style={{
+                height: 36,
+                objectFit: "contain",
+              }}
+            />
+          </div>
+
+          {/* <span
+            style={{
+              fontWeight: 600,
+              fontSize: 18,
+              letterSpacing: "0.4px",
+              color: "var(--text-primary)",
+            }}
+          >
+            BookMyShow
+          </span> */}
         </div>
 
         {/* CENTER NAV */}
@@ -152,7 +191,7 @@ const ProtectedRoute = ({ children }) => {
         />
 
         {/* USER MENU */}
-        <Dropdown
+        {/* <Dropdown
           menu={{
             items: [
               {
@@ -171,13 +210,53 @@ const ProtectedRoute = ({ children }) => {
               display: "flex",
               alignItems: "center",
               gap: 6,
-              fontWeight: 500,
-            }}
+              fontWeight: 500, */}
+
+        {/* }}
           >
             <UserOutlined />
             {user?.name}
           </div>
-        </Dropdown>
+        </Dropdown> */}
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Tooltip title={isDark ? "Switch to light mode" : "Switch to dark mode"}>
+            <Button
+              className="theme-toggle-btn"
+              icon={isDark ? <SunOutlined /> : <MoonOutlined />}
+              onClick={toggleTheme}
+            >
+              {isDark ? "Light" : "Dark"}
+            </Button>
+          </Tooltip>
+
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: "logout",
+                  icon: <LogoutOutlined />,
+                  label: "Logout",
+                  onClick: handleLogout,
+                },
+              ],
+            }}
+            placement="bottomRight"
+          >
+            <div
+              style={{
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontWeight: 500,
+              }}
+            >
+              <UserOutlined />
+              {user?.name}
+            </div>
+          </Dropdown>
+        </div>
       </Header>
 
       {/* CONTENT */}
@@ -196,7 +275,8 @@ const ProtectedRoute = ({ children }) => {
       <Footer
         style={{
           textAlign: "center",
-          background: "#ffffff",
+          // background: "#ffffff",
+          background: "var(--card-bg)",
           borderTop: "1px solid var(--border)",
           color: "var(--text-secondary)",
           padding: "var(--space-3)",

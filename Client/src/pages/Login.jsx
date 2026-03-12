@@ -8,10 +8,7 @@ import { GetCurrentUser } from "../api/user";
 import { mapErrorToMessage } from "../utils/errorMapper";
 
 const Login = () => {
-  const [messageApi, contextHolder] = message.useMessage(); // Add this
-  // this is the new way of showing notification msg in antd v5 & React 19
-  // we use this to showcase msg at the top with additional delay to view msg
-  // otherwise the fast rendering will skip it
+  const [messageApi, contextHolder] = message.useMessage(); 
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -68,7 +65,7 @@ const Login = () => {
       {contextHolder}
 
       <Card
-        bordered={false}
+        variant="borderless"
         style={{
           width: 420,
           borderRadius: 16,

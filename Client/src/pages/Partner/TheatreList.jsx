@@ -1,5 +1,5 @@
 import { message, Table, Button, Tag, Typography } from "antd";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../../redux/loaderSlice";
 import { getAllTheatres } from "../../api/theatre";
@@ -13,7 +13,7 @@ import ShowModal from "./ShowModal";
 import DeleteTheatreModal from "./DeleteTheatreModal";
 import { mapErrorToMessage } from "../../utils/errorMapper";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const TheatreList = () => {
   const dispatch = useDispatch();
@@ -128,9 +128,6 @@ const TheatreList = () => {
         }}
       >
         <div>
-          <Title level={4} style={{ marginBottom: 4 }}>
-            My Theatres
-          </Title>
           <Text type="secondary">
             Manage your theatres and show schedules
           </Text>

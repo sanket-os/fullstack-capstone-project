@@ -36,11 +36,6 @@ const showSchema = new mongoose.Schema(
             required: true,
             min: 1,
         },
-        // bookedSeats: {
-        //     type: Array,
-        //     default: [],
-        // },
-
         // 🔐 Critical for atomic booking logic
         bookedSeats: {
             type: [Number],

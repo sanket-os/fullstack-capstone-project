@@ -3,7 +3,7 @@ const AppError = require("../utils/AppError");
 
 /**
  * ----------------------------------------------------
- * Add Show (Admin)
+ * Add Show (Partner)
  * ----------------------------------------------------
  */
 const addShow = async (req, res, next) => {
@@ -27,7 +27,7 @@ const addShow = async (req, res, next) => {
 
 /**
  * ----------------------------------------------------
- * Delete Show (Admin)
+ * Delete Show (Partner)
  * ----------------------------------------------------
  */
 const deleteShow = async (req, res, next) => {
@@ -139,11 +139,13 @@ const getAllTheatresByMovie = async (req, res, next) => {
             throw new AppError(400, "MOVIE_DATE_REQUIRED", "Movie and date are required");
         }
 
-        const shows = await Show.find({ movie, date }).populate("theatre");
+        const shows = await Show.find({ movie: movie.trim(), date }).populate("theatre");
 
         let uniqueTheatres = [];
 
         shows.forEach((show) => {
+            if (!show.theatre) return; 
+
             // Check if this theatre is already in uniqueTheatres
             let isTheatre = uniqueTheatres.find(
                 (theatre) => theatre._id.toString() === show.theatre._id.toString()

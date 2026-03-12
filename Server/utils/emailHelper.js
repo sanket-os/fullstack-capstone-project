@@ -12,11 +12,6 @@ const transport = nodemailer.createTransport({
   },
 });
 
-// function replaceContent(content, metaData) {
-//   return Object.keys(metaData).reduce((updatedContent, key) => {
-//     return updatedContent.replace(new RegExp(`#{${key}}`, "g"), metaData[key]);
-//   }, content);
-// }
 
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

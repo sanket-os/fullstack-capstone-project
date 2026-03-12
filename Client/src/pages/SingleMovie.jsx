@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { message, Input, Divider, Row, Col, Card, Button } from "antd";
+import { message, Input, Row, Col, Card, Button } from "antd";
 import { CalendarOutlined } from "@ant-design/icons";
 import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
@@ -63,7 +63,8 @@ const SingleMovie = () => {
       {/* ===== MOVIE HEADER ===== */}
       {movie && (
         <Card
-          bordered={false}
+          className="movie-surface-card"
+          variant="borderless"
           style={{
             marginBottom: "var(--space-6)",
             borderRadius: 16,
@@ -120,7 +121,7 @@ const SingleMovie = () => {
 
       {/* ===== EMPTY STATE ===== */}
       {theatres.length === 0 && (
-        <Card bordered={false}>
+        <Card className="movie-surface-card" variant="borderless">
           <h3 style={{ margin: 0 }}>
             Currently no theatres available for this movie.
           </h3>
@@ -135,8 +136,9 @@ const SingleMovie = () => {
           </h2>
           {theatres.map((theatre) => (
             <Card
+              className="movie-surface-card"
               key={theatre._id}
-              bordered={false}
+              variant="borderless"
               style={{
                 marginBottom: "var(--space-5)",
                 borderRadius: 16,

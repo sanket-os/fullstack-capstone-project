@@ -55,7 +55,7 @@ const Forget = () => {
       {contextHolder}
 
       <Card
-        bordered={false}
+        variant="borderless"
         style={{
           width: 420,
           borderRadius: 16,

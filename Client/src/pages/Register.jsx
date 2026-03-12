@@ -6,9 +6,6 @@ import { mapErrorToMessage } from "../utils/errorMapper";
 
 const Register = () => {
   const [messageApi, contextHolder] = message.useMessage();
-  // message.useMessage() is the new Ant Design message system (v5+).
-  // messageApi: used to trigger messages like messageApi.success("...").
-  // contextHolder: a React element you must include in your JSX (Ant Design needs it to render messages properly).
   
   const navigate = useNavigate();
 
@@ -54,7 +51,7 @@ const Register = () => {
       {contextHolder}
 
       <Card
-        bordered={false}
+        variant="borderless"
         style={{
           width: 460,
           borderRadius: 16,

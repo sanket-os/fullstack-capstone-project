@@ -39,13 +39,6 @@ const Home = () => {
   };
 
 
-
-
-  // const handleSearch = (event) => {
-  //   setSearchText(event.target.value);
-  // };
-
-
   // Memoized filtering for better performance
   const filteredMovies = useMemo(() => {
     return movies.filter((movie) =>
@@ -97,8 +90,9 @@ const Home = () => {
               lg={6}
             >
               <Card
+                className="movie-surface-card"
                 hoverable
-                bordered={false}
+                variant="borderless"
                 style={{
                   borderRadius: 16,
                   overflow: "hidden",

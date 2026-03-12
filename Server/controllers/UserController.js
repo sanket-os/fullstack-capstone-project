@@ -92,7 +92,6 @@ const loginUser = async (req, res, next) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        // maxAge: 24 * 60 * 60 * 1000, // 1 day
       })
       .status(200).json({
         success: true,
@@ -241,9 +240,6 @@ const resetPassword = async (req, res, next) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req?.body?.password, salt);
-
-    // convert this logic into findByIdAndUpdate
-    // considering we should not set values as undefined
 
     user.password = hashedPassword;
     user.otp = undefined;

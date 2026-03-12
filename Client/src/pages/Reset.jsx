@@ -44,7 +44,7 @@ function Reset() {
       }}
     >
       <Card
-        bordered={false}
+        variant="borderless"
         style={{
           width: 420,
           borderRadius: 16,

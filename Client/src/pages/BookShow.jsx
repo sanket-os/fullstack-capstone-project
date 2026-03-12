@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, Row, Col, Button, message, Steps, Divider } from "antd";
 import moment from "moment";
+import { useTheme } from "../theme/themeContext";
 
 import { getShowById } from "../api/show";
 import {
@@ -47,7 +48,7 @@ const BookShow = () => {
    * Stripe-related state
    */
   const [clientSecret, setClientSecret] = useState(null);
-  // const [showPaymentUI, setShowPaymentUI] = useState(false);
+    const { isDark } = useTheme();
 
   useEffect(() => {
     fetchShow();
@@ -71,7 +72,6 @@ const BookShow = () => {
   };
 
 
-
   /**
    * STEP 1: Create Stripe PaymentIntent
    * -----------------------------------
@@ -82,17 +82,12 @@ const BookShow = () => {
     try {
       dispatch(showLoading());
 
-      // Stripe requires amount in smallest currency unit (paise)
-      // const amount = selectedSeats.length * show.ticketPrice * 100;
-      // const response = await createPaymentIntent(amount);
-
       const response = await createPaymentIntent({
         showId,
         seats: selectedSeats,
       });
 
       setClientSecret(response.clientSecret);
-      // setShowPaymentUI(true);
       setCurrentStep(1);
 
     } catch (error) {
@@ -144,13 +139,9 @@ const BookShow = () => {
    */
 
   // Elements wraps your checkout so Stripe works, Makes Stripe available to all child components
-
   // PaymentElement shows payment UI (card, UPI, netbanking, etc). So you don’t have to build UI manually
-
   // useStripe() - A React hook that gives you the Stripe object needed to confirm payments, a Stripe instance.
-
   // useElements() - A React hook that gives access to the form elements (like PaymentElement).
-
   // stripe.confirmPayment() completes the payment.
 
   const PaymentSection = () => {
@@ -307,7 +298,8 @@ const BookShow = () => {
       <Row justify="center">
         <Col xs={24} lg={22}>
           <Card
-            bordered={false}
+            className="movie-surface-card"
+            variant="borderless"
             style={{ borderRadius: 16 }}
             title={
               <>
@@ -335,7 +327,7 @@ const BookShow = () => {
                   <Col xs={24} md={10}>
                     <div
                       style={{
-                        background: "#f9fafb",
+                        background: "var(--surface-muted)",
                         padding: "var(--space-4)",
                         borderRadius: 16,
                       }}
@@ -367,7 +359,12 @@ const BookShow = () => {
 
                   {/* RIGHT COLUMN — PAYMENT */}
                   <Col xs={24} md={14}>
-                    <Elements stripe={stripePromise} options={{ clientSecret }}>
+                     <Elements stripe={stripePromise} options={{
+                      clientSecret,
+                      appearance: {
+                        theme: isDark ? "night" : "stripe",
+                      },
+                    }}>
                       <PaymentSection />
                     </Elements>
                   </Col>

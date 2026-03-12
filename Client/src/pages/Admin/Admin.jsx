@@ -27,21 +27,23 @@ const Admin = () => {
       {/* Page Header */}
       <div style={{ marginBottom: "var(--space-5)" }}>
         <h1 style={{ marginBottom: 4 }}>Admin Dashboard</h1>
-        <p style={{ color: "#6b7280", margin: 0 }}>
+        {/* <p style={{ color: "#6b7280", margin: 0 }}> */}
+        <p style={{ color: "var(--text-secondary)", margin: 0 }}>
           Manage movies and control theatre approvals
         </p>
       </div>
 
       {/* Tabs */}
       <Tabs
+       className="themed-surface"
         defaultActiveKey="movies"
         items={tabItems}
         size="large"
         style={{
-          background: "#ffffff",
+          // background: "#ffffff",
           padding: "var(--space-4)",
           borderRadius: 12,
-          border: "1px solid #e5e7eb",
+          // border: "1px solid #e5e7eb",
         }}
       />
     </div>

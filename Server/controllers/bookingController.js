@@ -5,13 +5,39 @@ const Show = require("../models/showSchema");
 const emailHelper = require("../utils/emailHelper");
 const AppError = require("../utils/AppError");
 
-/**
- * ----------------------------------------------------
- * Create Stripe Payment Intent
- * ----------------------------------------------------
- * Frontend confirms payment using Stripe PaymentElement.
- * Backend responsibility: create intent only.
- */
+const validateShowTime = (show) => {
+
+  // Convert show date
+  const showDate = new Date(show.date);
+
+  // Extract hours and minutes from show.time
+  const [time, modifier] = show.time.split(" ");
+
+  let [hours, minutes] = time.split(":").map(Number);
+
+  // Convert AM/PM → 24 hour
+  if (modifier === "PM" && hours !== 12) {
+    hours += 12;
+  }
+
+  if (modifier === "AM" && hours === 12) {
+    hours = 0;
+  }
+
+  showDate.setHours(hours);
+  showDate.setMinutes(minutes);
+  showDate.setSeconds(0);
+
+  const now = new Date();
+
+  if (showDate <= now) {
+    throw new AppError(
+      400,
+      "SHOW_ALREADY_STARTED",
+      "Cannot book tickets for past shows"
+    );
+  }
+};
 
 /**
  * ----------------------------------------------------
@@ -36,20 +62,26 @@ const createPaymentIntent = async (req, res, next) => {
       );
     }
 
-    // const { amount } = req.body;
+    // NEW VALIDATION
+    if (seats.length > 10) {
+      throw new AppError(
+        400,
+        "SEAT_LIMIT_EXCEEDED",
+        "You can book a maximum of 10 seats at a time"
+      );
+    }
 
-    // if (!amount || amount <= 0) {
-    //   throw new AppError(400, "INVALID_AMOUNT", "Invalid payment amount");
-    // }
 
-     /**
-     * STEP 1: Fetch show securely
-     */
+    /**
+    * STEP 1: Fetch show securely
+    */
     const show = await Show.findById(showId);
 
     if (!show) {
       throw new AppError(404, "SHOW_NOT_FOUND", "Show not found");
     }
+
+    validateShowTime(show);
 
     /**
      * STEP 2: Validate seats are not already booked
@@ -72,23 +104,10 @@ const createPaymentIntent = async (req, res, next) => {
     const amount = seats.length * show.ticketPrice * 100; // rupees → paise
 
 
-
-    // const paymentIntent = await stripe.paymentIntents.create({
-    //   amount: amount,
-    //   // Amount comes from frontend
-    //   // Must be in smallest currency unit
-    //   // ₹500 → 50000 paise
-    //   currency: "inr",
-    //   automatic_payment_methods: {
-    //     enabled: true,
-    //   },
-    // });
-    
-
-     /**
-     * STEP 4: Create Stripe PaymentIntent
-     * Metadata binds payment to THIS booking request.
-     */
+    /**
+    * STEP 4: Create Stripe PaymentIntent
+    * Metadata binds payment to THIS booking request.
+    */
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "inr",
@@ -190,6 +209,14 @@ const makePaymentAndBookShow = async (req, res, next) => {
       );
     }
 
+    if (seats.length > 10) {
+      throw new AppError(
+        400,
+        "SEAT_LIMIT_EXCEEDED",
+        "Maximum 10 seats allowed per booking"
+      );
+    }
+
     /**
      * STEP 1: Idempotency check
      * Prevent duplicate booking for same paymentIntent
@@ -240,6 +267,14 @@ const makePaymentAndBookShow = async (req, res, next) => {
     if (metadataSeats.sort().join(",") !== seats.sort().join(",")) {
       throw new AppError(400, "SEAT_MISMATCH", "Seat mismatch detected");
     }
+
+    const showData = await Show.findById(showId);
+
+    if (!showData) {
+      throw new AppError(404, "SHOW_NOT_FOUND", "Show not found");
+    }
+
+    validateShowTime(showData);
 
     /**
      * STEP 3: Atomically lock seats

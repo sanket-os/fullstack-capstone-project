@@ -65,7 +65,8 @@ const MyBookings = () => {
           .map((booking) => (
             <Col key={booking._id} xs={24} md={12}>
               <Card
-                bordered={false}
+                className="movie-surface-card"
+                variant="borderless"
                 style={{
                   borderRadius: 16,
                 }}

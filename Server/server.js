@@ -240,26 +240,27 @@ app.get(/.*/, (req, res) => {
  * Start Server ONLY After DB Connection
  * ----------------------------------------------------
  */
+// Start server only if NOT running tests
+if (process.env.NODE_ENV !== "test") {
+  connectDB()
+    .then(() => {
+      const server = app.listen(process.env.PORT, () => {
+        console.log(`✅ Server running on port ${process.env.PORT}`);
+      });
 
-connectDB()
-  .then(() => {
-    const server = app.listen(process.env.PORT, () => {
-      console.log(`✅ Server running on port ${process.env.PORT}`);
+      process.on("SIGTERM", () => {
+        console.log("🛑 SIGTERM received. Shutting down gracefully...");
+        server.close(() => process.exit(0));
+      });
+    })
+    .catch((err) => {
+      console.error("❌ Database connection failed", err);
+      process.exit(1);
     });
+}
 
-    // Graceful shutdown
-    process.on("SIGTERM", () => {
-      console.log("🛑 SIGTERM received. Shutting down gracefully...");
-      server.close(() => process.exit(0));
-    });
-  })
-  .catch((err) => {
-    console.error("❌ Database connection failed", err);
-    process.exit(1);
-  });
-
-
-
+// Export app for testing
+module.exports = app;
 
 // process.env is an object that contains the user environment variables (like system
 // settings and configuration values) for the current Node.js process

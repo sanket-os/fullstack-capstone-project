@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Layout, Menu, Spin, Dropdown, Button, Tooltip } from "antd";
-import logo from "../assets/bookmyshow-logo.svg";
+import logoLight from "../assets/bookmyshow-logo.svg";
+import logoDark from "../assets/dark_logo.svg";
 
 import {
   HomeOutlined,
@@ -29,6 +30,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const dispatch = useDispatch();
   const [authChecked, setAuthChecked] = useState(false);
   const { isDark, toggleTheme } = useTheme();
+ const logoSrc = isDark ? logoLight : logoDark;
 
   useEffect(() => {
     getValidUser();
@@ -103,7 +105,6 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       <Header
         style={{
           height: 64,
-          // background: "#ffffff",
           background: "var(--card-bg)",
           borderBottom: "1px solid var(--border)",
           display: "flex",
@@ -125,34 +126,21 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         >
           <div
             style={{
-              background: "var(--border)",
+              background: "transparent",
               padding: "4px 8px",
-              borderRadius: 6,
               display: "flex",
               alignItems: "center",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.08)"
             }}
           >
             <img
-              src={logo}
+              src={logoSrc}
               alt="BookMyShow"
               style={{
-                height: 36,
+                height: isDark ? 36 : 34,
                 objectFit: "contain",
               }}
             />
           </div>
-
-          {/* <span
-            style={{
-              fontWeight: 600,
-              fontSize: 18,
-              letterSpacing: "0.4px",
-              color: "var(--text-primary)",
-            }}
-          >
-            BookMyShow
-          </span> */}
         </div>
 
         {/* CENTER NAV */}
@@ -189,35 +177,6 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
             },
           ]}
         />
-
-        {/* USER MENU */}
-        {/* <Dropdown
-          menu={{
-            items: [
-              {
-                key: "logout",
-                icon: <LogoutOutlined />,
-                label: "Logout",
-                onClick: handleLogout,
-              },
-            ],
-          }}
-          placement="bottomRight"
-        >
-          <div
-            style={{
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              fontWeight: 500, */}
-
-        {/* }}
-          >
-            <UserOutlined />
-            {user?.name}
-          </div>
-        </Dropdown> */}
 
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <Tooltip title={isDark ? "Switch to light mode" : "Switch to dark mode"}>

@@ -4,11 +4,7 @@ const jwt = require("jsonwebtoken");
 const emailHelper = require("../utils/emailHelper");
 const AppError = require("../utils/AppError");
 
-/**
- * ----------------------------------------------------
- * Register User
- * ----------------------------------------------------
- */
+
 const registerUser = async (req, res, next) => {
   try {
     const userExists = await userModel.findOne({ email: req?.body?.email });
@@ -45,13 +41,8 @@ const registerUser = async (req, res, next) => {
   }
 };
 
-/**
- * ----------------------------------------------------
- * Login User
- * ----------------------------------------------------
- */
+
 const loginUser = async (req, res, next) => {
-  // console.log("LOGIN ATTEMPT BODY:", req.body);
   try {
     const user = await userModel.findOne({ email: req?.body?.email })
       .select("+password");;
@@ -111,11 +102,7 @@ const loginUser = async (req, res, next) => {
 // Only _id is meant to start with _, and using underscore prefixes for normal fields causes confusion and breaks conventions.
 // MongoDB stores the primary key as _id, not id.
 
-/**
- * ----------------------------------------------------
- * Logout User
- * ----------------------------------------------------
- */
+
 const logoutUser = async (req, res, next) => {
   try {
     res.clearCookie("bms_token", {
@@ -134,11 +121,6 @@ const logoutUser = async (req, res, next) => {
 };
 
 
-/**
- * ----------------------------------------------------
- * Get Current User
- * ----------------------------------------------------
- */
 const currentUser = async (req, res, next) => {
   try {
     const user = await userModel.findById(req.user.userId).select("-password"); // excludes password
@@ -157,15 +139,10 @@ const currentUser = async (req, res, next) => {
   }
 }
 
-/**
- * ----------------------------------------------------
- * Forget Password (Send OTP)
- * ----------------------------------------------------
- */
+
 const forgetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
-
 
     if (!email) {
       throw new AppError(400, "EMAIL_REQUIRED", "Email is required");
@@ -206,11 +183,7 @@ const forgetPassword = async (req, res, next) => {
   }
 };
 
-/**
- * ----------------------------------------------------
- * Reset Password
- * ----------------------------------------------------
- */
+
 const resetPassword = async (req, res, next) => {
   try {
     const { password, otp } = req.body;
@@ -255,6 +228,7 @@ const resetPassword = async (req, res, next) => {
     next(err);
   }
 };
+
 
 module.exports = {
   registerUser,

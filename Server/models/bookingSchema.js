@@ -23,8 +23,8 @@ const bookingSchema = new mongoose.Schema(
         transactionId: {
             type: String,
             required: true,
-            unique: true, // prevents duplicate bookings for same payment
-            immutable: true, // prevent modification
+            unique: true, 
+            immutable: true, 
         },
         amount: {
             type: Number, // stored in smallest currency unit

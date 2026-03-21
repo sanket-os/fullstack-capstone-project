@@ -19,8 +19,12 @@ const cors = require("cors");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 
+const openApiSpec = require("./Docs/openapi");
+const swaggerUi = require("swagger-ui-express");
+
 
 const app = express();
+
 
 /**
  * ----------------------------------------------------
@@ -32,6 +36,7 @@ if (!process.env.PORT || !process.env.SECRET_KEY || !process.env.MONGO_URI) {
   console.error("❌ Missing required environment variables");
   process.exit(1);
 }
+
 
 /**
  * ----------------------------------------------------
@@ -56,21 +61,6 @@ app.use(express.static(path.join(__dirname, "../Client/dist")));
  */
 app.use(helmet());
 
-// Custom Content Security Policy (CSP) configuration
-// app.use(
-//   helmet.contentSecurityPolicy({
-//     directives: {
-//       defaultSrc: ["'self'"], // Allows resources from the same origin (https://bookmyshowjune2024.onrender.com)
-//       scriptSrc: ["'self'"], // Allows scripts from your own domain
-//       styleSrc: ["'self'", "'unsafe-inline'"], // Allows styles from your domain and inline styles (if needed)
-//       imgSrc: ["'self'", "data:"], // Allows images from your domain and base64-encoded images
-//       connectSrc: ["'self'"], // Allows AJAX requests to your own domain
-//       fontSrc: ["'self'"], // Allows fonts from your domain
-//       objectSrc: ["'none'"], // Disallows <object>, <embed>, and <applet> elements
-//       upgradeInsecureRequests: [], // Automatically upgrades HTTP requests to HTTPS
-//     },
-//   })
-// );
 
 /**
  * Custom Content Security Policy
@@ -80,26 +70,28 @@ app.use(helmet());
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
-      defaultSrc: ["'self'"],
+      defaultSrc: ["'self'"],   // Allows resources from the same origin (https://bookmyshowjune2024.onrender.com)
       scriptSrc: [
         "'self'",
         "https://js.stripe.com", // Stripe JS
+        "https://unpkg.com"  // ✅ add this
       ],
-      styleSrc: [
+      styleSrc: [     // Allows scripts from your own domain
         "'self'",
         "'unsafe-inline'", // required for Stripe styles
+        "https://unpkg.com"  // ✅ swagger css also comes from here
       ],
-      imgSrc: [
+      imgSrc: [       // Allows images from your domain and base64-encoded images
         "'self'",
         "data:",
         "https://*.stripe.com",
       ],
-      connectSrc: [
+      connectSrc: [     // Allows AJAX requests to your own domain
         "'self'",
         "https://api.stripe.com", // Stripe API
       ],
-      fontSrc: ["'self'", "data:"],
-      objectSrc: ["'none'"],
+      fontSrc: ["'self'", "data:"],   // Allows fonts from your domain
+      objectSrc: ["'none'"],  // Disallows <object>, <embed>, and <applet> elements
       upgradeInsecureRequests: [], // Automatically upgrades HTTP requests to HTTPS
     },
   })
@@ -119,6 +111,7 @@ app.use(
   })
 );
 
+
 /**
  * Body parser
  */
@@ -126,6 +119,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(express.urlencoded({ extended: true }));
+
 
 /**
  * Prevent MongoDB operator injection (SAFE for Node 18+)
@@ -170,10 +164,19 @@ const apiLimiter = rateLimit({
   },
 });
 
+
 /**
  * Apply rate limiting to API routes only
  */
 app.use("/bms/v1", apiLimiter);
+
+
+app.use(
+  "/bms/v1/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(openApiSpec)
+);
+
 
 /**
  * Public routes (no JWT required)
@@ -199,6 +202,7 @@ app.use("/bms/v1/users", userRoute);
 // Reset password	      ❌
 // Get current user 	  ✅
 
+
 /**
  * Protected routes (JWT required)
  */
@@ -207,12 +211,14 @@ app.use("/bms/v1/theatres", validateJWTToken, theatreRoute);
 app.use("/bms/v1/shows", validateJWTToken, showRoute);
 app.use("/bms/v1/bookings", validateJWTToken, bookingRoute);
 
+
 /**
  * ----------------------------------------------------
  * Centralized Error Handler
  * ----------------------------------------------------
  */
 app.use(errorHandler); // Centralized error handler
+
 
 /**
  * ----------------------------------------------------
@@ -224,6 +230,7 @@ app.get(/.*/, (req, res) => {
     path.join(__dirname, "../Client/dist/index.html")
   );
 });
+
 // “If the request is not a file and not an API, send index.html anyway.” 
 // React Router decides what UI to show
 // This line is needed because React Router runs in the browser, not on the server.
@@ -235,6 +242,7 @@ app.get(/.*/, (req, res) => {
 // If it is, the server will use that value.
 // it is helpful to configure it in different environments like development, staging, production 
 
+
 /**
  * ----------------------------------------------------
  * Start Server ONLY After DB Connection
@@ -245,19 +253,20 @@ if (process.env.NODE_ENV !== "test") {
   connectDB()
     .then(() => {
       const server = app.listen(process.env.PORT, () => {
-        console.log(`✅ Server running on port ${process.env.PORT}`);
+        console.log(`Server running on port ${process.env.PORT}`);
       });
 
       process.on("SIGTERM", () => {
-        console.log("🛑 SIGTERM received. Shutting down gracefully...");
+        console.log("SIGTERM received. Shutting down gracefully...");
         server.close(() => process.exit(0));
       });
     })
     .catch((err) => {
-      console.error("❌ Database connection failed", err);
+      console.error("Database connection failed", err);
       process.exit(1);
     });
 }
+
 
 // Export app for testing
 module.exports = app;

@@ -1,18 +1,22 @@
 const Theatre = require("../models/theatreSchema");
 const AppError = require("../utils/AppError");
 
-/**
- * ----------------------------------------------------
- * Add Theatre (Admin / Owner)
- * ----------------------------------------------------
- */
+
+//  Add Theatre (Admin & Owner)
+
 const addTheatre = async (req, res, next) => {
     try {
         if (!req.body || Object.keys(req.body).length === 0) {
             throw new AppError(400, "THEATRE_DATA_REQUIRED", "Theatre details are required");
         }
 
-        const newTheatre = new Theatre(req.body);
+        const theatrePayload = {
+            ...req.body,
+            owner: req.user.userId, // partner/admin from JWT, never trust client for owner
+            isActive: false, // always requires admin approval first
+        };
+
+        const newTheatre = new Theatre(theatrePayload);
         await newTheatre.save();
 
         res.status(201).json({
@@ -24,17 +28,19 @@ const addTheatre = async (req, res, next) => {
     }
 };
 
-/**
- * ----------------------------------------------------
- * Update Theatre
- * ----------------------------------------------------
- */
+
 const updateTheatre = async (req, res, next) => {
     try {
         const { theatreId, ...updateData } = req.body;
 
         if (!theatreId) {
             throw new AppError(400, "INVALID_ID", "Invalid theatre ID");
+        }
+
+        // Partners can update theatre details but cannot self-approve.
+        if (req.user.role === "partner") {
+            delete updateData.isActive;
+            delete updateData.owner;
         }
 
         const updatedTheatre = await Theatre.findByIdAndUpdate(
@@ -57,11 +63,7 @@ const updateTheatre = async (req, res, next) => {
     }
 };
 
-/**
- * ----------------------------------------------------
- * Delete Theatre
- * ----------------------------------------------------
- */
+
 const deleteTheatre = async (req, res, next) => {
     try {
         const theatreId = req.params.theatreId;
@@ -84,11 +86,7 @@ const deleteTheatre = async (req, res, next) => {
     }
 };
 
-/**
- * ----------------------------------------------------
- * Get All Theatres
- * ----------------------------------------------------
- */
+
 const getAllTheatres = async (req, res, next) => {
     try {
         const allTheatres = await Theatre.find().populate({
@@ -106,11 +104,7 @@ const getAllTheatres = async (req, res, next) => {
     }
 };
 
-/**
- * ----------------------------------------------------
- * Get All Theatres by Owner
- * ----------------------------------------------------
- */
+
 const getAllTheatresByOwner = async (req, res, next) => {
     try {
         const allTheatres = await Theatre.find({ owner: req.user.userId });
@@ -124,6 +118,7 @@ const getAllTheatresByOwner = async (req, res, next) => {
         next(err);
     }
 };
+
 
 module.exports = {
     addTheatre,

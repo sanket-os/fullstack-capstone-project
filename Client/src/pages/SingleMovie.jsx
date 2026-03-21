@@ -46,7 +46,7 @@ const SingleMovie = () => {
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
     setDate(selectedDate);
-    navigate(`/movie/${ id } ? date = ${ selectedDate }`);
+    navigate(`/movie/${id} ? date = ${selectedDate}`);
   };
 
   useEffect(() => {
@@ -101,8 +101,12 @@ const SingleMovie = () => {
                 {moment(movie.releaseDate).format("MMM Do YYYY")}
               </p>
 
-              <p style={{ marginBottom: 16 }}>
+              <p style={{ marginBottom: 6 }}>
                 <strong>Duration:</strong> {movie.duration} Minutes
+              </p>
+
+              <p style={{ marginBottom: 16 }}>
+                <strong>Description:</strong> {movie.description}
               </p>
 
               <div style={{ maxWidth: 260 }}>
@@ -174,7 +178,7 @@ const SingleMovie = () => {
                           shape="round"
                           size="middle"
                           onClick={() =>
-                            navigate(`/book-show/${ show._id }`)
+                            navigate(`/book-show/${show._id}`)
                           }
                           style={{
                             minWidth: 90,

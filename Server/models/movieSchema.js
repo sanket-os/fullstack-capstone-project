@@ -14,8 +14,6 @@ const movieSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    // NOTE: Currently supports single genre/language.
-    // Can be extended to arrays in future.
     genre: [
         {
             type: String,

@@ -39,7 +39,7 @@ function AppRoutes() {
           </div>
         )
       }
-      {/* <BrowserRouter> */}
+   
       <Routes>
         {/* Protected */}
         <Route
@@ -105,8 +105,6 @@ function AppRoutes() {
         <Route path="/booking-success" element={<BookingSuccess />} />
 
       </Routes>
-      {/* </BrowserRouter> */}
-
 
       {showPublicThemeToggle && (
         <div className='theme-toggle-container'>
@@ -125,6 +123,7 @@ function AppRoutes() {
   )
 }
 
+
 function App() {
   return (
     <BrowserRouter>
@@ -132,5 +131,6 @@ function App() {
     </BrowserRouter>
   );
 }
+
 
 export default App;

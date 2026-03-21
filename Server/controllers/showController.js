@@ -1,11 +1,9 @@
 const Show = require("../models/showSchema");
 const AppError = require("../utils/AppError");
 
-/**
- * ----------------------------------------------------
- * Add Show (Partner)
- * ----------------------------------------------------
- */
+
+//  Add Show (Partner)
+ 
 const addShow = async (req, res, next) => {
     try {
         if (!req.body || Object.keys(req.body).length === 0) {
@@ -25,11 +23,9 @@ const addShow = async (req, res, next) => {
     }
 };
 
-/**
- * ----------------------------------------------------
- * Delete Show (Partner)
- * ----------------------------------------------------
- */
+
+//   Delete Show (Partner)
+
 const deleteShow = async (req, res, next) => {
     try {
         const showId = req.params.showId;
@@ -49,11 +45,9 @@ const deleteShow = async (req, res, next) => {
     }
 };
 
-/**
- * ----------------------------------------------------
- * Update Show (Admin)
- * ----------------------------------------------------
- */
+
+ // Update Show (Partner)
+
 const updateShow = async (req, res, next) => {
     try {
         const { showId, ...updateData } = req.body;
@@ -82,11 +76,7 @@ const updateShow = async (req, res, next) => {
     }
 };
 
-/**
- * ----------------------------------------------------
- * Get All Shows by Theatre
- * ----------------------------------------------------
- */
+
 const getAllShowsByTheatre = async (req, res, next) => {
     try {
         const theatreId = req.params.theatreId;
@@ -126,11 +116,6 @@ const getAllShowsByTheatre = async (req, res, next) => {
 //  └── theatre: { name: "PVR Inox", city: "Mumbai", ... }
 
 
-/**
- * ----------------------------------------------------
- * Get All Theatres by Movie & Date
- * ----------------------------------------------------
- */
 const getAllTheatresByMovie = async (req, res, next) => {
     try {
         const { movie, date } = req.body;
@@ -192,11 +177,6 @@ const getAllTheatresByMovie = async (req, res, next) => {
 // Then you no longer need _doc.
 
 
-/**
- * ----------------------------------------------------
- * Get Show by ID
- * ----------------------------------------------------
- */
 const getShowById = async (req, res, next) => {
     try {
         const { showId } = req.params;
@@ -218,6 +198,7 @@ const getShowById = async (req, res, next) => {
         next(error);
     }
 };
+
 
 module.exports = {
     addShow,

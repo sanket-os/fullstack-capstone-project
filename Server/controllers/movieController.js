@@ -1,11 +1,9 @@
 const movieModel = require("../models/movieSchema");
 const AppError = require("../utils/AppError");
 
-/**
- * ----------------------------------------------------
- * Add a New Movie (Admin)
- * ----------------------------------------------------
- */
+
+ // Add a New Movie (Admin)
+ 
 const addMovie = async (req, res, next) => {
     try {
         if (!req.body || Object.keys(req.body).length === 0) {
@@ -26,11 +24,9 @@ const addMovie = async (req, res, next) => {
     }
 };
 
-/**
- * ----------------------------------------------------
- * Get All Movies (Public)
- * ----------------------------------------------------
- */
+
+ // Get All Movies (Public)
+
 const getAllMovies = async (req, res, next) => {
     try {
         const allMovies = await movieModel.find();
@@ -46,15 +42,12 @@ const getAllMovies = async (req, res, next) => {
     }
 };
 
+
 // we use movieId because the route has :movieId not :id
 // names come from the route definition & controller must match it
 // use descriptive names like movieId instead of id for clarity
 
-/**
- * ----------------------------------------------------
- * Get Movie by ID
- * ----------------------------------------------------
- */
+
 const getMovieById = async (req, res, next) => {
     try {
         const movie = await movieModel.findById(req.params.id);
@@ -73,11 +66,9 @@ const getMovieById = async (req, res, next) => {
     }
 };
 
-/**
- * ----------------------------------------------------
- * Update Movie (Admin)
- * ----------------------------------------------------
- */
+
+//  Update Movie (Admin)
+
 const updateMovie = async (req, res, next) => {
     try {
         const { movieId, ...updateData } = req.body;
@@ -107,11 +98,9 @@ const updateMovie = async (req, res, next) => {
     }
 };
 
-/**
- * ----------------------------------------------------
- * Delete Movie (Admin)
- * ----------------------------------------------------
- */
+
+ // Delete Movie (Admin)
+
 const deleteMovie = async (req, res, next) => {
     try {
         const movieId = req.params.movieId;

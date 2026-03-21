@@ -5,6 +5,7 @@ const Show = require("../models/showSchema");
 const emailHelper = require("../utils/emailHelper");
 const AppError = require("../utils/AppError");
 
+
 const validateShowTime = (show) => {
 
   // Convert show date
@@ -38,6 +39,7 @@ const validateShowTime = (show) => {
     );
   }
 };
+
 
 /**
  * ----------------------------------------------------
@@ -83,6 +85,7 @@ const createPaymentIntent = async (req, res, next) => {
 
     validateShowTime(show);
 
+
     /**
      * STEP 2: Validate seats are not already booked
      */
@@ -97,6 +100,7 @@ const createPaymentIntent = async (req, res, next) => {
         "One or more selected seats are already booked"
       );
     }
+
 
     /**
      * STEP 3: SERVER calculates price (never trust frontend)
@@ -139,6 +143,7 @@ const createPaymentIntent = async (req, res, next) => {
 // secretKey => manage stripe, create payment intent, refunds
 // client secret => complete a specific payment only
 
+
 /**
  * ----------------------------------------------------
  * Get All Bookings for Logged-in User
@@ -176,6 +181,7 @@ const getAllBookings = async (req, res, next) => {
     next(error);
   }
 };
+
 
 /**
  * ----------------------------------------------------
@@ -217,6 +223,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
       );
     }
 
+
     /**
      * STEP 1: Idempotency check
      * Prevent duplicate booking for same paymentIntent
@@ -233,6 +240,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
       );
     }
 
+
     /**
      * STEP 2: Verify payment with Stripe
      * ----------------------------------
@@ -246,6 +254,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
     if (paymentIntent.status !== "succeeded") {
       throw new AppError(400, "PAYMENT_NOT_COMPLETED", "Payment not successful");
     }
+
 
     /**
      * STEP 2.1: Validate payment metadata (ANTI-TAMPERING)
@@ -275,6 +284,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
     }
 
     validateShowTime(showData);
+
 
     /**
      * STEP 3: Atomically lock seats
@@ -319,6 +329,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
       );
     }
 
+
     /**
      * STEP 4: Create booking document
      * --------------------------------
@@ -338,6 +349,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
     });
 
     await booking.save({ session });
+
 
     /**
      * STEP 5: Populate booking for frontend + email
@@ -359,6 +371,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
       })
       .session(session);
 
+
     /**
      * STEP 6: Commit transaction
      * ---------------------------
@@ -369,6 +382,7 @@ const makePaymentAndBookShow = async (req, res, next) => {
      */
     await session.commitTransaction();
     session.endSession();
+
 
     /**
      * STEP 7: Send email (non-blocking)
@@ -412,7 +426,6 @@ const makePaymentAndBookShow = async (req, res, next) => {
     next(error);
   }
 };
-
 
 
 module.exports = {

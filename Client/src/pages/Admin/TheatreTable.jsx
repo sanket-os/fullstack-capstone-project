@@ -125,11 +125,9 @@ const TheatreTable = () => {
   return (
     <div
       style={{
-        // background: "#ffffff",
          background: "var(--card-bg)",
         padding: "var(--space-5)",
         borderRadius: 12,
-        // border: "1px solid #e5e7eb",
          border: "1px solid var(--border)",
       }}
     >

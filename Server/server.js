@@ -120,6 +120,14 @@ app.use(cookieParser());
 
 app.use(express.urlencoded({ extended: true }));
 
+// backend check
+app.get('/bms/v1', (req, res) => {
+  res.json({
+    message: "BookMyShow API is running 🚀",
+    docs: "/bms/v1/docs"
+  });
+});
+
 
 /**
  * Prevent MongoDB operator injection (SAFE for Node 18+)

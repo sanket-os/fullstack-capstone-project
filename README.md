@@ -99,11 +99,10 @@ fullstack-capstone-project/
 
 ```
 
-## ⚙️ Environment Variables
+⚙️ Environment Variables
 
-Create `Server/.env`:
+Create a `Server/.env` file and add the following:
 
-```env
 PORT=5000
 MONGO_URI=<your_mongodb_connection_string>
 SECRET_KEY=<your_jwt_secret>

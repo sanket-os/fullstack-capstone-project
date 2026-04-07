@@ -1,97 +1,92 @@
 # 🎬 BookMyShow Capstone Project
 
-A full-stack movie ticket booking platform inspired by BookMyShow, built as a capstone project.
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&style=flat-square)](https://react.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-20-339933?logo=node.js&style=flat-square)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&style=flat-square)](https://www.mongodb.com/)
+[![Stripe](https://img.shields.io/badge/Stripe-Payments-008CD1?logo=stripe&style=flat-square)](https://stripe.com/)
+[![Vite](https://img.shields.io/badge/Vite-Tooling-646CFF?logo=vite&style=flat-square)](https://vitejs.dev/)
 
-This repository contains:
-- **Client**: React + Vite frontend
-- **Server**: Node.js + Express API
-- **MongoDB**: Persistent storage for users, movies, theatres, shows, and bookings
-- **Stripe**: Payment flow for ticket booking
+A robust, full-stack movie ticket booking platform inspired by BookMyShow. This project was developed as a capstone project, focusing on secure payment integration, role-based access control (RBAC), and scalable MERN architecture.
 
-## 🔗 Live Demo
+---
 
-- **Frontend:** `[https://your-frontend-url](https://fullstack-capstone-project-o3s2.onrender.com)`
-- **Backend/API Base:** `[https://your-backend-url/bms/v1](https://fullstack-capstone-project-o3s2.onrender.com/bms/v1)`
-- **API Docs (Swagger):** `https://fullstack-capstone-project-o3s2.onrender.com/bms/v1/docs/`
+## 🔗 Project Links
 
+- **Live Demo:** [View Live Site](https://fullstack-capstone-project-o3s2.onrender.com)
+- **Interactive API Docs:** [Swagger Documentation](https://fullstack-capstone-project-o3s2.onrender.com/bms/v1/docs/)
 
-## 🖼️ Screenshots
+---
 
-### 🎥 App Demo (Full Flow)
+## 🖼️ Visual Preview
+
+### Full App Flow
 ![App Demo](./docs/screenshots/demo.gif)
 
-### 📸 Key Screens
+### Key Interfaces
+| Home Page | Movie Details |
+| :--- | :--- |
+| ![Home](./docs/screenshots/Home-Page.png) | ![Details](./docs/screenshots/Movie-Details-Page.png) |
 
-![Home Page](./docs/screenshots/Home-Page.png)
-![Movie Details](./docs/screenshots/Movie-Details-Page.png)
-![Seat Booking](./docs/screenshots/Seat-Selection-UI.png)
-![Payment Success](./docs/screenshots/Payment-Success-Screen.png)
+| Seat Selection | Payment Success |
+| :--- | :--- |
+| ![Seats](./docs/screenshots/Seat-Selection-UI.png) | ![Success](./docs/screenshots/Payment-Success-Screen.png) |
 
-## 🚀 Features
+---
 
-### User-facing
-- User registration, login, logout, and current-user session APIs
-- Forgot-password with OTP and reset-password flow
-- Browse movies and view movie details
-- Browse theatres/shows and book seats
-- Stripe PaymentIntent integration for secure payments
-- My Bookings page and booking success flow
+## 🚀 Core Features
 
-### Role-based access
-- **Admin** can manage movies and approve/update theatres
-- **Partner** can add and manage theatres/shows
-- **User** can book shows and view personal bookings
+### 👤 User Capabilities
+- **Browse & Filter:** Search for movies and view detailed descriptions, ratings, and trailers.
+- **Booking Engine:** Interactive seat selection with real-time UI updates.
+- **Secure Payments:** Integrated **Stripe PaymentIntent** for seamless ticket purchasing.
+- **Account Security:** OTP-based "Forgot Password" flow and profile-specific booking history.
 
-### Security and platform reliability
-- JWT-based authentication + httpOnly cookie session token
-- Role middleware (`admin`, `partner`, `user`)
-- Request payload validation (Zod)
-- Helmet security headers and CSP
-- API rate limiting
-- Mongo sanitize protections
-- Centralized error handling
+### 🛡️ Admin & Partner Controls (RBAC)
+- **Admin:** Management of global movie catalogs and verification of theatre partners.
+- **Partner:** Manage theatre screens, schedule shows, and track ticket availability.
+
+### 🔐 Technical Highlights
+- **JWT Authentication:** Secure sessions using `httpOnly` cookies to mitigate XSS attacks.
+- **Data Integrity:** Schema validation via **Zod** and database sanitization to prevent NoSQL injection.
+- **Resilience:** Implemented API rate limiting, Helmet security headers, and centralized global error handling.
+
+---
 
 ## 🏗️ Tech Stack
 
-### Frontend (`/Client`)
-- React 19
-- React Router
-- Redux Toolkit
-- Ant Design
-- Axios
-- Vite
+### Frontend
+- **Framework:** React 19 + Vite
+- **State Management:** Redux Toolkit (RTK)
+- **UI Components:** Ant Design (AntD)
+- **Networking:** Axios
 
-### Backend (`/Server`)
-- Node.js + Express 5
-- MongoDB + Mongoose
-- JWT + bcrypt
-- Zod validation
-- Stripe
-- Nodemailer
-- Swagger (`/bms/v1/docs`)
+### Backend
+- **Runtime:** Node.js + Express 5
+- **Database:** MongoDB + Mongoose ODM
+- **Validation:** Zod
+- **Documentation:** Swagger (OpenAPI 3.0)
+
+---
 
 ## 📁 Project Structure
 
 ```text
 fullstack-capstone-project/
-├── Client/                  # React frontend
+├── Client/                  # React + Vite Frontend
 │   ├── src/
-│   │   ├── pages/
-│   │   ├── components/
-│   │   ├── redux/
-│   │   └── api/
-│   └── package.json
-├── Server/                  # Express backend
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   ├── middlewares/
-│   ├── validators/
-│   └── package.json
-├── HLD/                     # Design docs
-├── docs/
-│   └── screenshots/         # README images, gif
-└── BookMyShow.postman_collection.json
+│   │   ├── api/             # API service layers
+│   │   ├── redux/           # Global state slices
+│   │   ├── pages/           # View components (Admin, Partner, User)
+│   │   └── components/      # Shared UI (ProtectedRoutes, Navbar)
+├── Server/                  # Node.js + Express Backend
+│   ├── controllers/         # Business logic handlers
+│   ├── models/              # Mongoose database schemas
+│   ├── middlewares/         # Auth, RBAC, and Security
+│   ├── validators/          # Zod schema definitions
+│   └── routes/              # API endpoint definitions
+├── HLD/                     # High-Level Design & Architecture
+└── docs/                    # Media assets and screenshots
+
 ```
 
 ## ✅ Prerequisites
@@ -101,6 +96,8 @@ fullstack-capstone-project/
 - MongoDB connection URI (local or Atlas)
 - Stripe account (test keys are fine for local development)
 - Gmail app password (for OTP email delivery)
+
+```
 
 ## ⚙️ Environment Variables
 
@@ -115,6 +112,7 @@ STRIPE_KEY=<your_stripe_secret_key>
 GMAIL_USER=<your_gmail_address>
 GMAIL_APP_PASSWORD=<your_gmail_app_password>
 NODE_ENV=development
+
 ```
 
 > The backend exits at startup if `PORT`, `SECRET_KEY`, or `MONGO_URI` are missing.

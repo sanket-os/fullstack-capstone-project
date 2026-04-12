@@ -5,7 +5,7 @@ erDiagram
     USERS {
         ObjectId _id PK
         string name
-        string email UNIQUE
+        string email UK
         string password
         string role
         string otp
@@ -28,7 +28,7 @@ erDiagram
 
     MOVIES {
         ObjectId _id PK
-        string movieName UNIQUE
+        string movieName UK
         string description
         number duration
         string genre
@@ -56,7 +56,7 @@ erDiagram
         ObjectId showId FK
         ObjectId userId FK
         string seats
-        string transactionId UNIQUE
+        string transactionId UK
         number amount
         string currency
         string paymentStatus

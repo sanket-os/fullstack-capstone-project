@@ -1,16 +1,15 @@
 # Entity Relationship Diagram (Current Data Model)
 
 ```mermaid
-
 erDiagram
     USERS {
         ObjectId _id PK
         string name
         string email UNIQUE
         string password
-        enum role "admin|partner|user"
-        string otp "nullable"
-        date otpExpiry "nullable"
+        string role
+        string otp
+        date otpExpiry
         date createdAt
         date updatedAt
     }
@@ -19,10 +18,10 @@ erDiagram
         ObjectId _id PK
         string name
         string address
-        number phone
+        string phone
         string email
         boolean isActive
-        ObjectId owner FK
+        ObjectId ownerId FK
         date createdAt
         date updatedAt
     }
@@ -32,8 +31,8 @@ erDiagram
         string movieName UNIQUE
         string description
         number duration
-        string[] genre
-        string[] language
+        string genre
+        string language
         date releaseDate
         string poster
     }
@@ -45,22 +44,22 @@ erDiagram
         string time
         number ticketPrice
         number totalSeats
-        number[] bookedSeats
-        ObjectId movie FK
-        ObjectId theatre FK
+        string bookedSeats
+        ObjectId movieId FK
+        ObjectId theatreId FK
         date createdAt
         date updatedAt
     }
 
     BOOKINGS {
         ObjectId _id PK
-        ObjectId show FK
-        ObjectId user FK
-        number[] seats
+        ObjectId showId FK
+        ObjectId userId FK
+        string seats
         string transactionId UNIQUE
         number amount
         string currency
-        enum paymentStatus "succeeded|pending|failed"
+        string paymentStatus
         date createdAt
         date updatedAt
     }
@@ -71,6 +70,14 @@ erDiagram
     THEATRES ||--o{ SHOWS : hosts
     SHOWS ||--o{ BOOKINGS : reserved_by
 ```
+
+**Enums:**
+- role → admin | partner | user  
+- paymentStatus → succeeded | pending | failed  
+
+**Arrays:**
+- genre, language → string[]  
+- bookedSeats, seats → number[]
 
 ## Notes
 
